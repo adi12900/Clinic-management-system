@@ -4,247 +4,304 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Patient Registration – ClinicCare</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
-  <link href="assets/css/style.css" rel="stylesheet"/>
   <style>
-    body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 2rem 0; }
-    .registration-card { border-radius: 18px; box-shadow: 0 20px 60px rgba(0,0,0,.25); overflow: hidden; max-width: 800px; margin: auto; background: #fff; }
-    .registration-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 2rem; color: #fff; text-align: center; }
-    .registration-body { padding: 2.5rem; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0A0F1E; --accent: #00D4AA; --accent2: #00b38f;
+      --card-bg: rgba(255,255,255,0.04); --border: rgba(255,255,255,0.08);
+      --text: #FFFFFF; --muted: rgba(255,255,255,0.55);
+    }
+    html, body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; padding: 32px 24px; overflow-x: hidden; }
+
+    body::before { content: ''; position: fixed; width: 500px; height: 500px; background: radial-gradient(circle, rgba(0,212,170,0.08) 0%, transparent 70%); top: -120px; right: -80px; pointer-events: none; z-index: 0; }
+
+    .card { position: relative; z-index: 1; background: rgba(13,20,38,0.9); border: 1px solid var(--border); backdrop-filter: blur(20px); border-radius: 20px; width: 100%; max-width: 680px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,0.5); animation: fadeUp 0.4s ease both; }
+
+    .card-header { background: linear-gradient(135deg, #00D4AA 0%, #007a63 60%, #0A0F1E 100%); padding: 32px; text-align: center; position: relative; overflow: hidden; }
+    .card-header::after { content: ''; position: absolute; right: -40px; top: -40px; width: 140px; height: 140px; background: rgba(255,255,255,0.05); border-radius: 50%; }
+    .card-header i { font-size: 2.2rem; margin-bottom: 12px; display: block; }
+    .card-header h2 { font-size: 22px; font-weight: 800; margin-bottom: 5px; }
+    .card-header p { font-size: 13px; color: rgba(255,255,255,0.65); }
+
+    .card-body { padding: 32px; }
+
+    /* Step dots */
+    .step-dots { display: flex; justify-content: center; gap: 8px; margin-bottom: 28px; }
+    .step-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border); transition: all 0.3s ease; }
+    .step-dot.active { background: var(--accent); width: 28px; border-radius: 5px; box-shadow: 0 0 8px rgba(0,212,170,0.5); }
+
+    /* Alert */
+    .alert { padding: 11px 16px; border-radius: 10px; font-size: 13px; font-weight: 500; margin-bottom: 20px; display: none; }
+    .alert.show { display: block; }
+    .alert-success { background: rgba(0,212,170,0.12); color: var(--accent); border: 1px solid rgba(0,212,170,0.3); }
+    .alert-danger  { background: rgba(255,80,80,0.1);  color: #ff6b6b;   border: 1px solid rgba(255,80,80,0.25); }
+
+    /* Form steps */
     .form-step { display: none; }
-    .form-step.active { display: block; }
-    .step-indicator { display: flex; justify-content: center; gap: .5rem; margin-bottom: 2rem; }
-    .step-dot { width: 12px; height: 12px; border-radius: 50%; background: #e2e8f0; transition: all .3s; }
-    .step-dot.active { background: #667eea; width: 32px; border-radius: 6px; }
-    .password-strength { height: 4px; border-radius: 2px; background: #e2e8f0; margin-top: .5rem; overflow: hidden; }
-    .password-strength-bar { height: 100%; background: #10b981; width: 0; transition: width .3s; }
+    .form-step.active { display: block; animation: fadeUp 0.25s ease both; }
+    .step-title { font-size: 17px; font-weight: 700; text-align: center; margin-bottom: 24px; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1/-1; }
+    label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    label .req { color: #ff6b6b; margin-left: 2px; }
+
+    input[type="text"], input[type="email"], input[type="tel"], input[type="date"],
+    input[type="number"], input[type="password"], select, textarea {
+      background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text);
+      border-radius: 10px; padding: 11px 14px; font-family: 'Inter', sans-serif; font-size: 14px;
+      transition: border-color 0.2s; width: 100%; outline: none;
+      color-scheme: dark;
+    }
+    input:focus, select:focus, textarea:focus { border-color: rgba(0,212,170,0.5); box-shadow: 0 0 0 3px rgba(0,212,170,0.08); }
+    input::placeholder { color: rgba(255,255,255,0.2); }
+    input.invalid, select.invalid { border-color: rgba(255,80,80,0.5); }
+    .field-err { font-size: 11px; color: #ff6b6b; margin-top: 2px; display: none; }
+    .field-err.show { display: block; }
+    select option { background: #0D1426; }
+
+    /* Password field */
+    .pw-wrap { position: relative; }
+    .pw-wrap input { padding-right: 44px; }
+    .btn-eye { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted); cursor: pointer; font-size: 14px; line-height: 1; transition: color 0.2s; }
+    .btn-eye:hover { color: var(--text); }
+
+    /* Strength bar */
+    .strength-bar { height: 3px; background: var(--border); border-radius: 2px; margin-top: 6px; overflow: hidden; }
+    .strength-fill { height: 100%; width: 0; border-radius: 2px; transition: width 0.3s, background 0.3s; }
+
+    /* Checkbox */
+    .check-wrap { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
+    .check-wrap input { accent-color: var(--accent); width: 15px; height: 15px; flex-shrink: 0; margin-top: 2px; cursor: pointer; }
+    .check-wrap span { font-size: 13px; color: var(--muted); line-height: 1.4; }
+    .check-wrap a { color: var(--accent); text-decoration: none; }
+
+    /* Buttons */
+    .btn-row { display: flex; justify-content: space-between; margin-top: 24px; }
+    .btn-next { display: inline-flex; align-items: center; gap: 8px; background: var(--accent); color: #0A0F1E; border: none; padding: 11px 26px; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif; }
+    .btn-next:hover { background: var(--accent2); box-shadow: 0 4px 16px rgba(0,212,170,0.3); }
+    .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-back { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); color: var(--muted); padding: 11px 22px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif; }
+    .btn-back:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+    .signin-link { text-align: center; margin-top: 20px; font-size: 13px; color: var(--muted); }
+    .signin-link a { color: var(--accent); font-weight: 600; text-decoration: none; }
+    .signin-link a:hover { text-decoration: underline; }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
   </style>
 </head>
 <body>
-<div class="container">
-  <div class="registration-card">
-    <div class="registration-header">
-      <i class="fa fa-user-plus fs-1 mb-3"></i>
-      <h3 class="fw-bold mb-2">Patient Registration</h3>
-      <p class="text-white-50 small mb-0">Create your account to book appointments</p>
+<div class="card">
+  <div class="card-header">
+    <i class="fa fa-user-plus"></i>
+    <h2>Patient Registration</h2>
+    <p>Create your account to book appointments</p>
+  </div>
+  <div class="card-body">
+    <div class="step-dots">
+      <div class="step-dot active" id="dot1"></div>
+      <div class="step-dot" id="dot2"></div>
+      <div class="step-dot" id="dot3"></div>
     </div>
 
-    <div class="registration-body">
-      <div id="regAlert" class="alert d-none"></div>
+    <div class="alert" id="regAlert"></div>
 
-      <!-- Step Indicator -->
-      <div class="step-indicator">
-        <div class="step-dot active" data-step="1"></div>
-        <div class="step-dot" data-step="2"></div>
-        <div class="step-dot" data-step="3"></div>
+    <form id="registrationForm" novalidate>
+
+      <!-- Step 1: Personal Info -->
+      <div class="form-step active" id="step1">
+        <div class="step-title">Personal Information</div>
+        <div class="form-row">
+          <div class="form-group full">
+            <label>Full Name <span class="req">*</span></label>
+            <input type="text" id="fullName" placeholder="John Doe" required/>
+            <span class="field-err" id="err-fullName">Please enter your full name</span>
+          </div>
+          <div class="form-group">
+            <label>Date of Birth <span class="req">*</span></label>
+            <input type="date" id="dob" required/>
+            <span class="field-err" id="err-dob">Please select your date of birth</span>
+          </div>
+          <div class="form-group">
+            <label>Gender <span class="req">*</span></label>
+            <select id="gender" required>
+              <option value="">Select Gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+            <span class="field-err" id="err-gender">Please select your gender</span>
+          </div>
+        </div>
+        <div class="btn-row" style="justify-content:flex-end">
+          <button type="button" class="btn-next" onclick="nextStep(1)">Next <i class="fa fa-arrow-right"></i></button>
+        </div>
       </div>
 
-      <form id="registrationForm" novalidate>
-        <!-- Step 1: Personal Information -->
-        <div class="form-step active" id="step1">
-          <h5 class="fw-bold mb-4 text-center">Personal Information</h5>
-          <div class="row g-3">
-            <div class="col-12">
-              <label class="form-label">Full Name <span class="text-danger">*</span></label>
-              <input type="text" class="form-control" id="fullName" placeholder="John Doe" required/>
-              <div class="invalid-feedback">Please enter your full name</div>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Date of Birth <span class="text-danger">*</span></label>
-              <input type="date" class="form-control" id="dob" required/>
-              <div class="invalid-feedback">Please select your date of birth</div>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Gender <span class="text-danger">*</span></label>
-              <select class="form-select" id="gender" required>
-                <option value="">Select Gender</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
-              </select>
-              <div class="invalid-feedback">Please select your gender</div>
-            </div>
+      <!-- Step 2: Contact Info -->
+      <div class="form-step" id="step2">
+        <div class="step-title">Contact Information</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Phone Number <span class="req">*</span></label>
+            <input type="tel" id="phone" placeholder="+1 234 567 8900" required/>
+            <span class="field-err" id="err-phone">Please enter a phone number</span>
           </div>
-          <div class="d-flex justify-content-end mt-4">
-            <button type="button" class="btn btn-primary px-4" onclick="nextStep(1)">
-              Next <i class="fa fa-arrow-right ms-2"></i>
-            </button>
+          <div class="form-group">
+            <label>Email Address <span class="req">*</span></label>
+            <input type="email" id="email" placeholder="john@example.com" required/>
+            <span class="field-err" id="err-email">Please enter a valid email</span>
+          </div>
+          <div class="form-group full">
+            <label>Address</label>
+            <textarea id="address" rows="3" placeholder="123 Main Street, City, State"></textarea>
           </div>
         </div>
+        <div class="btn-row">
+          <button type="button" class="btn-back" onclick="prevStep(2)"><i class="fa fa-arrow-left"></i> Back</button>
+          <button type="button" class="btn-next" onclick="nextStep(2)">Next <i class="fa fa-arrow-right"></i></button>
+        </div>
+      </div>
 
-        <!-- Step 2: Contact Information -->
-        <div class="form-step" id="step2">
-          <h5 class="fw-bold mb-4 text-center">Contact Information</h5>
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label">Phone Number <span class="text-danger">*</span></label>
-              <input type="tel" class="form-control" id="phone" placeholder="+1 234 567 8900" required/>
-              <div class="invalid-feedback">Please enter a valid phone number</div>
+      <!-- Step 3: Account Security -->
+      <div class="form-step" id="step3">
+        <div class="step-title">Account Security</div>
+        <div class="form-row">
+          <div class="form-group full">
+            <label>Password <span class="req">*</span></label>
+            <div class="pw-wrap">
+              <input type="password" id="password" placeholder="••••••••" required minlength="8"/>
+              <button class="btn-eye" type="button" onclick="togglePwd('password','eye1')"><i class="fa fa-eye" id="eye1"></i></button>
             </div>
-            <div class="col-md-6">
-              <label class="form-label">Email Address <span class="text-danger">*</span></label>
-              <input type="email" class="form-control" id="email" placeholder="john@example.com" required/>
-              <div class="invalid-feedback">Please enter a valid email</div>
-            </div>
-            <div class="col-12">
-              <label class="form-label">Address</label>
-              <textarea class="form-control" id="address" rows="3" placeholder="123 Main Street, City, State"></textarea>
-            </div>
+            <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+            <span style="font-size:11px;color:var(--muted)">Minimum 8 characters</span>
+            <span class="field-err" id="err-password">Password must be at least 8 characters</span>
           </div>
-          <div class="d-flex justify-content-between mt-4">
-            <button type="button" class="btn btn-outline-secondary px-4" onclick="prevStep(2)">
-              <i class="fa fa-arrow-left me-2"></i> Back
-            </button>
-            <button type="button" class="btn btn-primary px-4" onclick="nextStep(2)">
-              Next <i class="fa fa-arrow-right ms-2"></i>
-            </button>
+          <div class="form-group full">
+            <label>Confirm Password <span class="req">*</span></label>
+            <div class="pw-wrap">
+              <input type="password" id="confirmPassword" placeholder="••••••••" required/>
+              <button class="btn-eye" type="button" onclick="togglePwd('confirmPassword','eye2')"><i class="fa fa-eye" id="eye2"></i></button>
+            </div>
+            <span class="field-err" id="err-confirmPassword">Passwords do not match</span>
+          </div>
+          <div class="form-group full">
+            <label class="check-wrap">
+              <input type="checkbox" id="terms" required/>
+              <span>I agree to the <a href="#">Terms & Conditions</a></span>
+            </label>
+            <span class="field-err" id="err-terms">You must agree to continue</span>
           </div>
         </div>
-
-        <!-- Step 3: Account Security -->
-        <div class="form-step" id="step3">
-          <h5 class="fw-bold mb-4 text-center">Account Security</h5>
-          <div class="row g-3">
-            <div class="col-12">
-              <label class="form-label">Password <span class="text-danger">*</span></label>
-              <div class="input-group">
-                <input type="password" class="form-control" id="password" placeholder="••••••••" required minlength="8"/>
-                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password','eyeIcon1')">
-                  <i class="fa fa-eye" id="eyeIcon1"></i>
-                </button>
-              </div>
-              <div class="password-strength"><div class="password-strength-bar" id="strengthBar"></div></div>
-              <small class="text-muted">Minimum 8 characters</small>
-              <div class="invalid-feedback">Password must be at least 8 characters</div>
-            </div>
-            <div class="col-12">
-              <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
-              <div class="input-group">
-                <input type="password" class="form-control" id="confirmPassword" placeholder="••••••••" required/>
-                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirmPassword','eyeIcon2')">
-                  <i class="fa fa-eye" id="eyeIcon2"></i>
-                </button>
-              </div>
-              <div class="invalid-feedback">Passwords do not match</div>
-            </div>
-            <div class="col-12">
-              <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="terms" required/>
-                <label class="form-check-label small" for="terms">
-                  I agree to the <a href="#" class="text-primary">Terms & Conditions</a>
-                </label>
-                <div class="invalid-feedback">You must agree to continue</div>
-              </div>
-            </div>
-          </div>
-          <div class="d-flex justify-content-between mt-4">
-            <button type="button" class="btn btn-outline-secondary px-4" onclick="prevStep(3)">
-              <i class="fa fa-arrow-left me-2"></i> Back
-            </button>
-            <button type="submit" class="btn btn-primary px-4" id="submitBtn">
-              <i class="fa fa-check me-2"></i> Register
-            </button>
-          </div>
+        <div class="btn-row">
+          <button type="button" class="btn-back" onclick="prevStep(3)"><i class="fa fa-arrow-left"></i> Back</button>
+          <button type="submit" class="btn-next" id="submitBtn"><i class="fa fa-check"></i> Register</button>
         </div>
-      </form>
+      </div>
 
-      <p class="text-center text-muted small mt-4 mb-0">
-        Already have an account? <a href="patient-login.html" class="text-primary fw-semibold">Sign In</a>
-      </p>
-    </div>
+    </form>
+
+    <p class="signin-link">Already have an account? <a href="patient-login.html">Sign In</a></p>
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
   const API = 'http://127.0.0.1:8000';
 
+  const stepFields = {
+    1: ['fullName', 'dob', 'gender'],
+    2: ['phone', 'email']
+  };
+
   function nextStep(current) {
-    const step   = document.getElementById('step' + current);
-    const inputs = step.querySelectorAll('input[required], select[required]');
+    const fields = stepFields[current] || [];
     let valid = true;
-    inputs.forEach(inp => {
-      if (!inp.checkValidity()) { valid = false; inp.classList.add('is-invalid'); }
-      else inp.classList.remove('is-invalid');
+    fields.forEach(id => {
+      const el = document.getElementById(id);
+      const err = document.getElementById('err-' + id);
+      if (!el.checkValidity()) { el.classList.add('invalid'); err?.classList.add('show'); valid = false; }
+      else { el.classList.remove('invalid'); err?.classList.remove('show'); }
     });
     if (!valid) return;
-    step.classList.remove('active');
-    document.getElementById('step' + (current + 1)).classList.add('active');
-    document.querySelector(`.step-dot[data-step="${current}"]`).classList.remove('active');
-    document.querySelector(`.step-dot[data-step="${current + 1}"]`).classList.add('active');
+    setStep(current + 1);
   }
 
-  function prevStep(current) {
-    document.getElementById('step' + current).classList.remove('active');
-    document.getElementById('step' + (current - 1)).classList.add('active');
-    document.querySelector(`.step-dot[data-step="${current}"]`).classList.remove('active');
-    document.querySelector(`.step-dot[data-step="${current - 1}"]`).classList.add('active');
+  function prevStep(current) { setStep(current - 1); }
+
+  function setStep(n) {
+    document.querySelectorAll('.form-step').forEach((s, i) => s.classList.toggle('active', i+1 === n));
+    [1,2,3].forEach(i => document.getElementById('dot'+i).classList.toggle('active', i <= n));
   }
 
-  function togglePassword(fieldId, iconId) {
-    const f = document.getElementById(fieldId);
-    const i = document.getElementById(iconId);
+  function togglePwd(fieldId, iconId) {
+    const f = document.getElementById(fieldId), i = document.getElementById(iconId);
     f.type = f.type === 'password' ? 'text' : 'password';
     i.className = f.type === 'password' ? 'fa fa-eye' : 'fa fa-eye-slash';
   }
 
   document.getElementById('password').addEventListener('input', function() {
-    const bar = document.getElementById('strengthBar');
+    const bar = document.getElementById('strengthFill');
     let s = 0;
     if (this.value.length >= 8) s += 25;
     if (/[a-z]/.test(this.value)) s += 25;
     if (/[A-Z]/.test(this.value)) s += 25;
     if (/[0-9]/.test(this.value)) s += 25;
     bar.style.width = s + '%';
-    bar.style.background = s <= 25 ? '#ef4444' : s <= 50 ? '#f59e0b' : s <= 75 ? '#3b82f6' : '#10b981';
+    bar.style.background = s <= 25 ? '#ef4444' : s <= 50 ? '#F5A623' : s <= 75 ? '#6C63FF' : '#00D4AA';
   });
 
   document.getElementById('confirmPassword').addEventListener('input', function() {
-    const pwd = document.getElementById('password').value;
-    this.setCustomValidity(this.value !== pwd ? 'Passwords do not match' : '');
+    this.setCustomValidity(this.value !== document.getElementById('password').value ? 'Passwords do not match' : '');
   });
 
   document.getElementById('registrationForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-    if (!this.checkValidity()) { this.classList.add('was-validated'); return; }
+    const alertEl = document.getElementById('regAlert');
+    const btn     = document.getElementById('submitBtn');
 
-    const alertDiv = document.getElementById('regAlert');
-    const btn      = document.getElementById('submitBtn');
-    alertDiv.classList.add('d-none');
+    // Validate step 3 fields
+    const pwField   = document.getElementById('password');
+    const cpField   = document.getElementById('confirmPassword');
+    const termsChk  = document.getElementById('terms');
+    let valid = true;
+    if (pwField.value.length < 8) { document.getElementById('err-password').classList.add('show'); pwField.classList.add('invalid'); valid = false; }
+    else { document.getElementById('err-password').classList.remove('show'); pwField.classList.remove('invalid'); }
+    if (cpField.value !== pwField.value) { document.getElementById('err-confirmPassword').classList.add('show'); cpField.classList.add('invalid'); valid = false; }
+    else { document.getElementById('err-confirmPassword').classList.remove('show'); cpField.classList.remove('invalid'); }
+    if (!termsChk.checked) { document.getElementById('err-terms').classList.add('show'); valid = false; }
+    else { document.getElementById('err-terms').classList.remove('show'); }
+    if (!valid) return;
 
-    const name     = document.getElementById('fullName').value.trim();
-    const dob      = document.getElementById('dob').value;
-    const gender   = document.getElementById('gender').value;
-    const phone    = document.getElementById('phone').value.trim();
-    const email    = document.getElementById('email').value.trim();
-    const address  = document.getElementById('address').value.trim();
-    const password = document.getElementById('password').value;
-
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Registering...';
+    alertEl.classList.remove('show');
+    btn.disabled = true; btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Registering…';
 
     try {
       const res = await fetch(`${API}/patient/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, dob, gender, phone, email, address, password })
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name:     document.getElementById('fullName').value.trim(),
+          dob:      document.getElementById('dob').value,
+          gender:   document.getElementById('gender').value,
+          phone:    document.getElementById('phone').value.trim(),
+          email:    document.getElementById('email').value.trim(),
+          address:  document.getElementById('address').value.trim(),
+          password: pwField.value
+        })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || 'Registration failed.');
-
-      alertDiv.className = 'alert alert-success';
-      alertDiv.textContent = 'Registration successful! Redirecting to login...';
-      alertDiv.classList.remove('d-none');
-
-      setTimeout(() => window.location.href = 'patient-login.html', 1500);
+      alertEl.className = 'alert alert-success show';
+      alertEl.textContent = 'Registration successful! Redirecting to login…';
+      setTimeout(() => window.location.href = 'patient-login.html', 1800);
     } catch (err) {
-      alertDiv.className = 'alert alert-danger';
-      alertDiv.textContent = err.message || 'Registration failed. Try again.';
-      alertDiv.classList.remove('d-none');
+      alertEl.className = 'alert alert-danger show';
+      alertEl.textContent = err.message || 'Registration failed. Try again.';
     } finally {
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fa fa-check me-2"></i> Register';
+      btn.disabled = false; btn.innerHTML = '<i class="fa fa-check"></i> Register';
     }
   });
 </script>

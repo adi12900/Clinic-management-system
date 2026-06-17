@@ -4,77 +4,151 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>My Appointments – ClinicCare</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
-  <link href="assets/css/style.css" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0A0F1E; --sidebar-bg: #0D1426;
+      --accent: #00D4AA; --accent2: #00b38f;
+      --violet: #6C63FF; --gold: #F5A623;
+      --card-bg: rgba(255,255,255,0.04); --border: rgba(255,255,255,0.08);
+      --text: #FFFFFF; --muted: rgba(255,255,255,0.55);
+    }
+    html, body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+    ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 4px; }
+
+    /* Layout */
+    .layout { display: flex; min-height: 100vh; }
+    .sidebar { width: 240px; flex-shrink: 0; background: var(--sidebar-bg); border-right: 1px solid rgba(255,255,255,0.06); display: flex; flex-direction: column; padding: 28px 0; position: fixed; top: 0; left: 0; bottom: 0; z-index: 100; }
+    .sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 0 24px 28px; font-size: 20px; font-weight: 800; color: var(--text); }
+    .logo-icon { width: 36px; height: 36px; background: var(--accent); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; box-shadow: 0 0 18px rgba(0,212,170,0.55); color: #0A0F1E; }
+    .nav-section { font-size: 10px; font-weight: 600; letter-spacing: 1.2px; color: rgba(255,255,255,0.25); padding: 18px 24px 6px; text-transform: uppercase; }
+    .sidebar-nav { list-style: none; flex: 1; }
+    .sidebar-nav a { display: flex; align-items: center; gap: 11px; padding: 10px 16px; margin: 2px 12px; border-radius: 10px; color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 500; transition: all 0.2s ease; position: relative; }
+    .sidebar-nav a i { width: 18px; text-align: center; font-size: 14px; }
+    .sidebar-nav a:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+    .sidebar-nav a.active { background: rgba(0,212,170,0.12); color: var(--text); font-weight: 600; }
+    .sidebar-nav a.active::before { content: ''; position: absolute; left: -12px; top: 50%; transform: translateY(-50%); width: 3px; height: 22px; background: var(--accent); border-radius: 0 3px 3px 0; }
+    .logout-link a { color: rgba(255,100,100,0.7); }
+    .logout-link a:hover { background: rgba(255,80,80,0.08); color: #ff6b6b; }
+
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding: 20px 36px; border-bottom: 1px solid var(--border); background: rgba(10,15,30,0.8); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 50; }
+    .topbar h1 { font-size: 22px; font-weight: 700; }
+    .user-info { display: flex; align-items: center; gap: 12px; }
+    .avatar { width: 38px; height: 38px; background: linear-gradient(135deg, var(--accent), #008c72); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #0A0F1E; box-shadow: 0 0 14px rgba(0,212,170,0.4); }
+    .user-email { font-size: 13px; color: var(--muted); }
+    .body { padding: 32px 36px; display: flex; flex-direction: column; gap: 24px; }
+
+    /* Alert */
+    .alert { padding: 12px 18px; border-radius: 10px; font-size: 14px; font-weight: 500; display: none; }
+    .alert.show { display: block; }
+    .alert-success { background: rgba(0,212,170,0.12); color: var(--accent); border: 1px solid rgba(0,212,170,0.3); }
+    .alert-danger  { background: rgba(255,80,80,0.1);  color: #ff6b6b;   border: 1px solid rgba(255,80,80,0.25); }
+
+    /* Filter bar */
+    .filter-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; animation: fadeUp 0.3s ease both; }
+    .filter-group { display: flex; gap: 8px; flex-wrap: wrap; }
+    .filter-btn { background: var(--card-bg); border: 1px solid var(--border); color: var(--muted); padding: 8px 18px; border-radius: 20px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; font-family: 'Inter', sans-serif; }
+    .filter-btn:hover { background: rgba(255,255,255,0.07); color: var(--text); }
+    .filter-btn.active { background: rgba(0,212,170,0.15); color: var(--accent); border-color: rgba(0,212,170,0.4); font-weight: 600; }
+    .btn-primary { display: inline-flex; align-items: center; gap: 8px; background: var(--accent); color: #0A0F1E; border: none; padding: 10px 22px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; transition: all 0.2s ease; font-family: 'Inter', sans-serif; }
+    .btn-primary:hover { background: var(--accent2); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,212,170,0.3); }
+
+    /* Table card */
+    .table-card { background: var(--card-bg); border: 1px solid var(--border); backdrop-filter: blur(16px); border-radius: 16px; overflow: hidden; animation: fadeUp 0.35s ease 0.1s both; }
+    .table-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid var(--border); }
+    .table-title { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 600; }
+    .table-title i { color: var(--accent); }
+    .count-badge { background: rgba(0,212,170,0.15); color: var(--accent); border: 1px solid rgba(0,212,170,0.3); border-radius: 20px; padding: 3px 12px; font-size: 12px; font-weight: 600; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    thead tr th { padding: 12px 20px; font-size: 11px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: rgba(255,255,255,0.4); text-align: left; }
+    tbody tr { border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s ease; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(0,212,170,0.06); }
+    tbody td { padding: 14px 20px; font-size: 14px; }
+
+    /* Doctor avatar in table */
+    .doc-cell { display: flex; align-items: center; gap: 10px; }
+    .doc-avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), #008c72); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #0A0F1E; flex-shrink: 0; }
+
+    /* Badges */
+    .badge-status { display: inline-block; border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 600; }
+    .status-scheduled { background: rgba(245,166,35,0.15); color: var(--gold); border: 1px solid rgba(245,166,35,0.3); }
+    .status-completed { background: rgba(0,212,170,0.15); color: var(--accent); border: 1px solid rgba(0,212,170,0.3); }
+    .status-cancelled { background: rgba(255,80,80,0.12); color: #ff6b6b; border: 1px solid rgba(255,80,80,0.25); }
+    .status-pending   { background: rgba(108,99,255,0.15); color: var(--violet); border: 1px solid rgba(108,99,255,0.3); }
+
+    /* Action buttons */
+    .btn-cancel { background: rgba(255,80,80,0.1); color: #ff6b6b; border: 1px solid rgba(255,80,80,0.25); padding: 5px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif; }
+    .btn-cancel:hover { background: rgba(255,80,80,0.2); }
+    .btn-rebook { background: rgba(0,212,170,0.1); color: var(--accent); border: 1px solid rgba(0,212,170,0.3); padding: 5px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: none; transition: all 0.2s; font-family: 'Inter', sans-serif; display: inline-block; }
+    .btn-rebook:hover { background: rgba(0,212,170,0.2); color: var(--accent); }
+
+    .empty-state { padding: 56px 24px; text-align: center; color: var(--muted); }
+    .empty-state i { font-size: 2.5rem; opacity: 0.25; margin-bottom: 12px; display: block; }
+    .empty-state p { margin-bottom: 16px; font-size: 14px; }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
 </head>
 <body>
-<div class="dashboard-wrapper">
-  <!-- Sidebar -->
+<div class="layout">
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
-      <i class="fa-solid fa-staff-snake"></i>
-      <span>ClinicCare</span>
+      <div class="logo-icon"><i class="fa fa-plus"></i></div>
+      ClinicCare
     </div>
     <ul class="sidebar-nav">
-      <li class="nav-section">MAIN MENU</li>
+      <li class="nav-section">Main Menu</li>
       <li><a href="patient-dashboard.html"><i class="fa fa-th-large"></i> Dashboard</a></li>
       <li><a href="patient-book-appointment.html"><i class="fa fa-calendar-plus"></i> Book Appointment</a></li>
       <li><a href="patient-appointments.html" class="active"><i class="fa fa-calendar-check"></i> My Appointments</a></li>
-      <li class="nav-section">ACCOUNT</li>
+      <li><a href="patient-medical-records.html"><i class="fa fa-file-medical"></i> Medical Records</a></li>
+      <li class="nav-section">Account</li>
       <li><a href="patient-profile.html"><i class="fa fa-user-circle"></i> My Profile</a></li>
       <li class="logout-link"><a href="#" onclick="doLogout()"><i class="fa fa-right-from-bracket"></i> Logout</a></li>
     </ul>
   </aside>
-  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
-  <main class="main-content">
+  <main class="main">
     <div class="topbar">
-      <div class="d-flex align-items-center gap-3">
-        <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
-        <h1 class="page-title">My Appointments</h1>
-      </div>
+      <h1>My Appointments</h1>
       <div class="user-info">
         <div class="avatar" id="userAvatar">--</div>
-        <span class="fw-semibold" id="userEmail">Loading...</span>
+        <span class="user-email" id="userEmail">Loading...</span>
       </div>
     </div>
 
-    <div class="dashboard-body">
-      <div id="pageAlert" class="alert d-none mb-3"></div>
+    <div class="body">
+      <div class="alert" id="pageAlert"></div>
 
-      <!-- Filter + Book Button -->
-      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
-        <div class="btn-group" role="group">
-          <input type="radio" class="btn-check" name="filter" id="f-all" checked onchange="applyFilter('all')"/>
-          <label class="btn btn-outline-primary" for="f-all">All</label>
-          <input type="radio" class="btn-check" name="filter" id="f-scheduled" onchange="applyFilter('scheduled')"/>
-          <label class="btn btn-outline-primary" for="f-scheduled">Scheduled</label>
-          <input type="radio" class="btn-check" name="filter" id="f-completed" onchange="applyFilter('completed')"/>
-          <label class="btn btn-outline-primary" for="f-completed">Completed</label>
-          <input type="radio" class="btn-check" name="filter" id="f-cancelled" onchange="applyFilter('cancelled')"/>
-          <label class="btn btn-outline-primary" for="f-cancelled">Cancelled</label>
+      <div class="filter-bar">
+        <div class="filter-group">
+          <button class="filter-btn active" onclick="applyFilter('all', this)">All</button>
+          <button class="filter-btn" onclick="applyFilter('scheduled', this)">Scheduled</button>
+          <button class="filter-btn" onclick="applyFilter('completed', this)">Completed</button>
+          <button class="filter-btn" onclick="applyFilter('cancelled', this)">Cancelled</button>
         </div>
-        <a href="patient-book-appointment.html" class="btn btn-primary">
-          <i class="fa fa-plus me-2"></i>Book New Appointment
+        <a href="patient-book-appointment.html" class="btn-primary">
+          <i class="fa fa-plus"></i> Book New
         </a>
       </div>
 
-      <!-- Appointments Table -->
-      <div class="content-card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <span><i class="fa fa-calendar-check me-2 text-primary"></i>Appointment History</span>
-          <span class="badge bg-primary rounded-pill" id="apptCount">0</span>
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-title"><i class="fa fa-calendar-check"></i> Appointment History</div>
+          <span class="count-badge" id="apptCount">0</span>
         </div>
-        <div class="table-responsive">
-          <table class="table table-hover mb-0">
+        <div class="table-wrap">
+          <table>
             <thead>
               <tr><th>#</th><th>Date</th><th>Doctor</th><th>Specialization</th><th>Status</th><th>Notes</th><th>Actions</th></tr>
             </thead>
             <tbody id="apptTable">
-              <tr><td colspan="7" class="text-center text-muted py-4">
-                <div class="spinner-border spinner-border-sm me-2"></div>Loading...
-              </td></tr>
+              <tr><td colspan="7"><div class="empty-state"><i class="fa fa-spinner fa-spin"></i><p>Loading appointments…</p></div></td></tr>
             </tbody>
           </table>
         </div>
@@ -83,7 +157,6 @@
   </main>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
   const API   = 'http://127.0.0.1:8000';
   const token = localStorage.getItem('token');
@@ -93,138 +166,71 @@
   document.getElementById('userEmail').textContent  = email;
   document.getElementById('userAvatar').textContent = email.substring(0,2).toUpperCase();
 
-  let allAppts  = [];
-  let doctorMap = {}; // id -> doctor object
-  let patientId = null;
+  let allAppts = [], doctorMap = {}, patientId = null;
 
-  const statusClass = { scheduled:'status-pending', completed:'status-completed', cancelled:'status-cancelled' };
-
-  function authHdr() {
-    return { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
-  }
-
+  function authHdr() { return { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }; }
   function doLogout() { localStorage.clear(); window.location.href = 'patient-login.html'; }
 
-  function toggleSidebar() {
-    document.getElementById('sidebar').classList.toggle('open');
-    document.getElementById('sidebarOverlay').classList.toggle('open');
-  }
-
   async function init() {
-    // Load doctors into map
+    try { const r = await fetch(`${API}/doctors`, { headers: authHdr() }); (await r.json()).forEach(d => doctorMap[d.id] = d); } catch {}
+    try { const r = await fetch(`${API}/patients`, { headers: authHdr() }); const m = (await r.json()).find(p => p.email?.toLowerCase() === email.toLowerCase()); if (m) patientId = m.id; } catch {}
     try {
-      const dRes = await fetch(`${API}/doctors`, { headers: authHdr() });
-      const docs = await dRes.json();
-      docs.forEach(d => doctorMap[d.id] = d);
-    } catch {}
-
-    // Find patient record by email
-    try {
-      const pRes  = await fetch(`${API}/patients`, { headers: authHdr() });
-      const pats  = await pRes.json();
-      const match = pats.find(p => p.email && p.email.toLowerCase() === email.toLowerCase());
-      if (match) patientId = match.id;
-    } catch {}
-
-    // Load all appointments
-    try {
-      const res  = await fetch(`${API}/appointments`, { headers: authHdr() });
-      if (res.status === 401) { doLogout(); return; }
-      const data = await res.json();
-      // Filter to only this patient's appointments if patientId found
+      const r = await fetch(`${API}/appointments`, { headers: authHdr() });
+      if (r.status === 401) { doLogout(); return; }
+      const data = await r.json();
       allAppts = patientId ? data.filter(a => a.patient_id === patientId) : data;
     } catch {}
-
     renderTable(allAppts);
   }
 
-  function applyFilter(status) {
-    const filtered = status === 'all' ? allAppts : allAppts.filter(a => a.status === status);
-    renderTable(filtered);
+  function applyFilter(status, btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderTable(status === 'all' ? allAppts : allAppts.filter(a => a.status === status));
   }
 
   function renderTable(data) {
     const tbody = document.getElementById('apptTable');
     document.getElementById('apptCount').textContent = data.length;
-
     if (!data.length) {
-      tbody.innerHTML = `
-        <tr><td colspan="7" class="text-center py-5">
-          <i class="fa fa-calendar-xmark text-muted mb-2" style="font-size:2.5rem;opacity:.3;"></i>
-          <p class="text-muted mb-2">No appointments found.</p>
-          <a href="patient-book-appointment.html" class="btn btn-primary btn-sm">
-            <i class="fa fa-plus me-1"></i> Book Now
-          </a>
-        </td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><i class="fa fa-calendar-xmark"></i><p>No appointments found.</p><a href="patient-book-appointment.html" class="btn-primary" style="display:inline-flex;margin-top:4px;"><i class="fa fa-plus"></i> Book Now</a></div></td></tr>`;
       return;
     }
-
+    const cls = { scheduled:'status-scheduled', completed:'status-completed', cancelled:'status-cancelled' };
     tbody.innerHTML = data.map((a, i) => {
-      const doc    = doctorMap[a.doctor_id];
-      const docName = doc ? doc.name : `Doctor #${a.doctor_id}`;
-      const docSpec = doc ? doc.specialization : '—';
-      const initials = docName.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
-      const canCancel = a.status === 'scheduled';
-
-      return `
-        <tr>
-          <td>${i + 1}</td>
-          <td><div class="fw-semibold">${a.appointment_date}</div></td>
-          <td>
-            <div class="d-flex align-items-center gap-2">
-              <div class="avatar bg-primary" style="width:34px;height:34px;font-size:.75rem;">${initials}</div>
-              <span>${docName}</span>
-            </div>
-          </td>
-          <td>${docSpec}</td>
-          <td><span class="badge-status ${statusClass[a.status] || 'status-pending'}">${a.status}</span></td>
-          <td>${a.notes || '—'}</td>
-          <td>
-            ${canCancel ? `
-              <button class="btn btn-action btn-outline-danger" onclick="cancelAppointment(${a.id})">
-                <i class="fa fa-times"></i> Cancel
-              </button>` : ''}
-            ${a.status === 'cancelled' ? `
-              <a href="patient-book-appointment.html" class="btn btn-action btn-outline-primary">
-                <i class="fa fa-redo"></i> Rebook
-              </a>` : ''}
-            ${a.status === 'completed' ? `<span class="text-muted small">Completed</span>` : ''}
-          </td>
-        </tr>`;
+      const doc = doctorMap[a.doctor_id];
+      const name = doc ? doc.name : `Doctor #${a.doctor_id}`;
+      const spec = doc ? doc.specialization : '—';
+      const init = name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+      return `<tr>
+        <td style="color:var(--muted)">${i+1}</td>
+        <td><strong>${a.appointment_date}</strong></td>
+        <td><div class="doc-cell"><div class="doc-avatar">${init}</div><span>${name}</span></div></td>
+        <td style="color:var(--muted)">${spec}</td>
+        <td><span class="badge-status ${cls[a.status]||'status-pending'}">${a.status}</span></td>
+        <td style="font-style:italic;color:var(--muted);font-size:13px">${a.notes||'—'}</td>
+        <td>
+          ${a.status==='scheduled' ? `<button class="btn-cancel" onclick="cancelAppointment(${a.id})"><i class="fa fa-times"></i> Cancel</button>` : ''}
+          ${a.status==='cancelled' ? `<a href="patient-book-appointment.html" class="btn-rebook"><i class="fa fa-redo"></i> Rebook</a>` : ''}
+          ${a.status==='completed' ? `<span style="font-size:12px;color:var(--muted)">Completed</span>` : ''}
+        </td>
+      </tr>`;
     }).join('');
   }
 
   async function cancelAppointment(id) {
-    if (!confirm('Are you sure you want to cancel this appointment?')) return;
-
-    // Fetch full appointment to PUT back with cancelled status
-    const getRes = await fetch(`${API}/appointments/${id}`, { headers: authHdr() });
-    const appt   = await getRes.json();
-
+    if (!confirm('Cancel this appointment?')) return;
+    const r = await fetch(`${API}/appointments/${id}`, { headers: authHdr() });
+    const appt = await r.json();
     const res = await fetch(`${API}/appointments/${id}`, {
-      method: 'PUT',
-      headers: authHdr(),
-      body: JSON.stringify({
-        patient_id:       appt.patient_id,
-        doctor_id:        appt.doctor_id,
-        appointment_date: appt.appointment_date,
-        status:           'cancelled',
-        notes:            appt.notes || null
-      })
+      method: 'PUT', headers: authHdr(),
+      body: JSON.stringify({ patient_id: appt.patient_id, doctor_id: appt.doctor_id, appointment_date: appt.appointment_date, status: 'cancelled', notes: appt.notes || null })
     });
-
-    const alertEl = document.getElementById('pageAlert');
-    if (res.ok) {
-      alertEl.className = 'alert alert-success';
-      alertEl.textContent = 'Appointment cancelled successfully.';
-      alertEl.classList.remove('d-none');
-      await init(); // reload
-    } else {
-      alertEl.className = 'alert alert-danger';
-      alertEl.textContent = 'Failed to cancel appointment.';
-      alertEl.classList.remove('d-none');
-    }
-    setTimeout(() => alertEl.classList.add('d-none'), 3000);
+    const al = document.getElementById('pageAlert');
+    al.className = res.ok ? 'alert alert-success show' : 'alert alert-danger show';
+    al.textContent = res.ok ? 'Appointment cancelled successfully.' : 'Failed to cancel appointment.';
+    if (res.ok) await init();
+    setTimeout(() => al.classList.remove('show'), 3000);
   }
 
   init();

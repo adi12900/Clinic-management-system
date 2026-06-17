@@ -77,7 +77,7 @@ class Appointment(Base):
     patient_id = Column(Integer, ForeignKey("patients.id"), nullable=False)
     doctor_id = Column(Integer, ForeignKey("doctors.id"), nullable=False)
     appointment_date = Column(Date, nullable=False)
-    status = Column(String, default="scheduled")  # scheduled, completed, cancelled
+    status = Column(String, default="pending")  # pending, scheduled, completed, cancelled
     notes = Column(Text)
 
 
@@ -220,13 +220,18 @@ def logout():
 # GET /dashboard
 @app.get("/dashboard")
 def dashboard(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    q = db.query(Appointment)
+    if current_user.role == "doctor":
+        doctor = db.query(Doctor).filter(Doctor.email == current_user.email).first()
+        if doctor:
+            q = q.filter(Appointment.doctor_id == doctor.id)
     return {
         "total_doctors": db.query(Doctor).count(),
         "total_patients": db.query(Patient).count(),
-        "total_appointments": db.query(Appointment).count(),
-        "scheduled": db.query(Appointment).filter(Appointment.status == "scheduled").count(),
-        "completed": db.query(Appointment).filter(Appointment.status == "completed").count(),
-        "cancelled": db.query(Appointment).filter(Appointment.status == "cancelled").count(),
+        "total_appointments": q.count(),
+        "scheduled": q.filter(Appointment.status == "scheduled").count(),
+        "completed": q.filter(Appointment.status == "completed").count(),
+        "cancelled": q.filter(Appointment.status == "cancelled").count(),
     }
 
 
@@ -365,13 +370,18 @@ class AppointmentSchema(BaseModel):
     patient_id: int
     doctor_id: int
     appointment_date: date
-    status: Optional[str] = "scheduled"
+    status: Optional[str] = "pending"
     notes: Optional[str] = None
 
 
 # GET /appointments
 @app.get("/appointments")
 def get_appointments(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if current_user.role == "doctor":
+        doctor = db.query(Doctor).filter(Doctor.email == current_user.email).first()
+        if not doctor:
+            return []
+        return db.query(Appointment).filter(Appointment.doctor_id == doctor.id).all()
     return db.query(Appointment).all()
 
 
@@ -407,6 +417,38 @@ def update_appointment(id: int, data: AppointmentSchema, current_user: User = De
         raise HTTPException(status_code=404, detail="Appointment not found")
     for key, value in data.model_dump().items():
         setattr(appointment, key, value)
+    db.commit()
+    db.refresh(appointment)
+    return appointment
+
+
+# PATCH /appointments/{id}/status  — Doctor accepts or rejects
+class AppointmentStatusUpdate(BaseModel):
+    action: str  # "accept" or "reject"
+
+
+@app.patch("/appointments/{id}/status")
+def update_appointment_status(
+    id: int,
+    data: AppointmentStatusUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if current_user.role != "doctor":
+        raise HTTPException(status_code=403, detail="Only doctors can accept or reject appointments")
+    if data.action not in ("accept", "reject"):
+        raise HTTPException(status_code=400, detail="action must be 'accept' or 'reject'")
+
+    appointment = db.query(Appointment).filter(Appointment.id == id).first()
+    if not appointment:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+
+    # Verify the appointment belongs to this doctor
+    doctor = db.query(Doctor).filter(Doctor.email == current_user.email).first()
+    if not doctor or appointment.doctor_id != doctor.id:
+        raise HTTPException(status_code=403, detail="Not your appointment")
+
+    appointment.status = "scheduled" if data.action == "accept" else "cancelled"
     db.commit()
     db.refresh(appointment)
     return appointment
