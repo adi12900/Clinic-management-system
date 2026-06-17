@@ -50,33 +50,15 @@
           <!-- Right Panel -->
           <div class="col-lg-7 login-right">
             <h5 class="fw-bold mb-1">Sign in to your account</h5>
-            <p class="text-muted small mb-4">Select your role and enter credentials</p>
-
-            <!-- Role Selection -->
-            <div class="mb-4">
-              <label class="form-label">Select Role</label>
-              <div class="row g-2">
-                <div class="col-6">
-                  <div class="role-btn selected" onclick="selectRole(this,'nurse')" id="role-nurse">
-                    <i class="fa fa-user-nurse"></i>
-                    <div class="role-name">Nurse</div>
-                  </div>
-                </div>
-                <div class="col-6">
-                  <div class="role-btn" onclick="selectRole(this,'doctor')" id="role-doctor">
-                    <i class="fa fa-user-doctor"></i>
-                    <div class="role-name">Doctor</div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <p class="text-muted small mb-4">Enter your credentials to continue</p>
 
             <form id="loginForm" novalidate>
+              <div id="loginError" class="alert alert-danger d-none"></div>
               <div class="mb-3">
                 <label class="form-label">Email Address</label>
                 <div class="input-group">
                   <span class="input-group-text bg-white"><i class="fa fa-envelope text-muted"></i></span>
-                  <input type="email" class="form-control" placeholder="you@clinic.com" required/>
+                  <input type="email" class="form-control" id="emailInput" placeholder="you@clinic.com" required/>
                 </div>
               </div>
               <div class="mb-3">
@@ -96,7 +78,7 @@
                 </div>
                 <a href="#" class="text-primary small text-decoration-none">Forgot password?</a>
               </div>
-              <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold" onclick="doLogin(event)">
+              <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold" id="loginBtn">
                 <i class="fa fa-right-to-bracket me-2"></i>Sign In
               </button>
             </form>
@@ -114,22 +96,58 @@
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  let selectedRole = 'nurse';
-  function selectRole(el, role) {
-    document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
-    el.classList.add('selected');
-    selectedRole = role;
-  }
+  const API = 'http://127.0.0.1:8000';
+
+  // Redirect if already logged in
+  if (localStorage.getItem('token')) window.location.href = 'admin-dashboard.html';
+
   function togglePwd() {
     const inp = document.getElementById('pwdInput');
     const ico = document.getElementById('eyeIcon');
     inp.type = inp.type === 'password' ? 'text' : 'password';
     ico.className = inp.type === 'password' ? 'fa fa-eye' : 'fa fa-eye-slash';
   }
-  function doLogin(e) {
+
+  document.getElementById('loginForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-    window.location.href = selectedRole === 'nurse' ? 'nurse-dashboard.html' : 'doctor-dashboard.html';
-  }
+    const email    = document.getElementById('emailInput').value.trim();
+    const password = document.getElementById('pwdInput').value;
+    const errDiv   = document.getElementById('loginError');
+    const btn      = document.getElementById('loginBtn');
+    errDiv.classList.add('d-none');
+
+    if (!email || !password) {
+      errDiv.textContent = 'Please enter email and password.';
+      errDiv.classList.remove('d-none');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Signing in...';
+
+    try {
+      const res  = await fetch(`${API}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        errDiv.textContent = data.detail || 'Login failed.';
+        errDiv.classList.remove('d-none');
+        return;
+      }
+      localStorage.setItem('token', data.access_token);
+      localStorage.setItem('role', data.role);
+      window.location.href = 'admin-dashboard.html';
+    } catch {
+      errDiv.textContent = 'Cannot reach server. Is the backend running?';
+      errDiv.classList.remove('d-none');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa fa-right-to-bracket me-2"></i>Sign In';
+    }
+  });
 </script>
 </body>
 </html>
