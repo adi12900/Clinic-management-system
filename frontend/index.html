@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ClinicCare – Smart Appointment Management</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+  <link href="assets/css/style.css" rel="stylesheet"/>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+      <i class="fa-solid fa-staff-snake text-primary fs-4"></i>
+      <span class="fw-bold text-primary fs-5">ClinicCare</span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav mx-auto gap-1">
+        <li class="nav-item"><a class="nav-link active" href="#">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="#features">Features</a></li>
+        <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
+        <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+      </ul>
+      <a href="login.html" class="btn btn-primary px-4 rounded-pill">
+        <i class="fa fa-right-to-bracket me-1"></i> Login
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero-section py-5">
+  <div class="container py-4">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6">
+        <span class="badge bg-primary-soft text-primary mb-3 px-3 py-2 rounded-pill">
+          <i class="fa fa-shield-halved me-1"></i> Trusted Healthcare Platform
+        </span>
+        <h1 class="display-5 fw-bold lh-sm mb-3">Smart Clinic <span class="text-primary">Appointment</span> Management System</h1>
+        <p class="text-muted fs-5 mb-4">Manage patients, appointments, and medical records efficiently — all in one secure, modern platform.</p>
+        <div class="d-flex flex-wrap gap-3">
+          <a href="login.html" class="btn btn-primary btn-lg px-4 rounded-pill shadow">
+            <i class="fa fa-rocket me-2"></i>Get Started
+          </a>
+          <a href="#features" class="btn btn-outline-primary btn-lg px-4 rounded-pill">
+            <i class="fa fa-circle-play me-2"></i>Learn More
+          </a>
+        </div>
+        <div class="d-flex gap-4 mt-5">
+          <div class="text-center">
+            <div class="fw-bold fs-4 text-primary">120+</div>
+            <small class="text-muted">Doctors</small>
+          </div>
+          <div class="vr"></div>
+          <div class="text-center">
+            <div class="fw-bold fs-4 text-primary">5K+</div>
+            <small class="text-muted">Patients</small>
+          </div>
+          <div class="vr"></div>
+          <div class="text-center">
+            <div class="fw-bold fs-4 text-primary">98%</div>
+            <small class="text-muted">Satisfaction</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6 text-center">
+        <div class="hero-illustration">
+          <i class="fa-solid fa-hospital-user hero-icon"></i>
+          <div class="floating-card card-1">
+            <i class="fa fa-calendar-check text-success me-2"></i><small>Appointment Booked</small>
+          </div>
+          <div class="floating-card card-2">
+            <i class="fa fa-user-doctor text-primary me-2"></i><small>Dr. available</small>
+          </div>
+          <div class="floating-card card-3">
+            <i class="fa fa-notes-medical text-warning me-2"></i><small>Records Updated</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features" class="py-5 bg-light">
+  <div class="container py-3">
+    <div class="text-center mb-5">
+      <span class="badge bg-primary-soft text-primary px-3 py-2 rounded-pill mb-2">Features</span>
+      <h2 class="fw-bold">Everything Your Clinic Needs</h2>
+      <p class="text-muted">Comprehensive tools to streamline clinic operations</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-4 col-sm-6">
+        <div class="feature-card h-100">
+          <div class="feature-icon bg-primary-soft text-primary"><i class="fa fa-user-plus"></i></div>
+          <h6 class="fw-bold mt-3">Patient Registration</h6>
+          <p class="text-muted small">Register new patients with complete medical profiles and history.</p>
+        </div>
+      </div>
+      <div class="col-md-4 col-sm-6">
+        <div class="feature-card h-100">
+          <div class="feature-icon bg-success-soft text-success"><i class="fa fa-user-doctor"></i></div>
+          <h6 class="fw-bold mt-3">Doctor Scheduling</h6>
+          <p class="text-muted small">Manage doctor availability and schedule efficiently.</p>
+        </div>
+      </div>
+      <div class="col-md-4 col-sm-6">
+        <div class="feature-card h-100">
+          <div class="feature-icon bg-warning-soft text-warning"><i class="fa fa-calendar-days"></i></div>
+          <h6 class="fw-bold mt-3">Appointment Management</h6>
+          <p class="text-muted small">Book, reschedule, and track appointments with ease.</p>
+        </div>
+      </div>
+      <div class="col-md-4 col-sm-6">
+        <div class="feature-card h-100">
+          <div class="feature-icon bg-info-soft text-info"><i class="fa fa-file-medical"></i></div>
+          <h6 class="fw-bold mt-3">Medical Records</h6>
+          <p class="text-muted small">Store and retrieve patient records and prescriptions securely.</p>
+        </div>
+      </div>
+      <div class="col-md-4 col-sm-6">
+        <div class="feature-card h-100">
+          <div class="feature-icon bg-danger-soft text-danger"><i class="fa fa-lock"></i></div>
+          <h6 class="fw-bold mt-3">Secure Login (JWT)</h6>
+          <p class="text-muted small">Role-based authentication with JWT for nurses and doctors.</p>
+        </div>
+      </div>
+      <div class="col-md-4 col-sm-6">
+        <div class="feature-card h-100">
+          <div class="feature-icon bg-purple-soft text-purple"><i class="fa fa-bell"></i></div>
+          <h6 class="fw-bold mt-3">Appointment Reminders</h6>
+          <p class="text-muted small">Automated notifications to keep patients and staff on schedule.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATISTICS -->
+<section class="py-5 stats-section">
+  <div class="container py-3">
+    <div class="row g-4 text-center">
+      <div class="col-md-4">
+        <div class="stat-card">
+          <i class="fa fa-user-doctor stat-icon text-primary mb-3"></i>
+          <div class="stat-number">120</div>
+          <div class="stat-label">Total Doctors</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="stat-card">
+          <i class="fa fa-users stat-icon text-success mb-3"></i>
+          <div class="stat-number">5,240</div>
+          <div class="stat-label">Total Patients</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="stat-card">
+          <i class="fa fa-calendar-check stat-icon text-warning mb-3"></i>
+          <div class="stat-number">48</div>
+          <div class="stat-label">Daily Appointments</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about" class="py-5 bg-light">
+  <div class="container py-3">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-5 text-center">
+        <div class="about-icon-wrap">
+          <i class="fa fa-hospital text-primary about-big-icon"></i>
+        </div>
+      </div>
+      <div class="col-lg-7">
+        <span class="badge bg-primary-soft text-primary px-3 py-2 rounded-pill mb-2">About Us</span>
+        <h2 class="fw-bold mb-3">Built for Modern Healthcare</h2>
+        <p class="text-muted mb-3">ClinicCare is a full-featured appointment management system designed to reduce administrative burden, improve patient flow, and deliver better care outcomes.</p>
+        <ul class="list-unstyled">
+          <li class="mb-2"><i class="fa fa-circle-check text-primary me-2"></i>HIPAA-ready data handling</li>
+          <li class="mb-2"><i class="fa fa-circle-check text-primary me-2"></i>Real-time appointment tracking</li>
+          <li class="mb-2"><i class="fa fa-circle-check text-primary me-2"></i>Role-based access control</li>
+          <li class="mb-2"><i class="fa fa-circle-check text-primary me-2"></i>Responsive across all devices</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact" class="py-5">
+  <div class="container py-3">
+    <div class="text-center mb-5">
+      <span class="badge bg-primary-soft text-primary px-3 py-2 rounded-pill mb-2">Contact</span>
+      <h2 class="fw-bold">Get In Touch</h2>
+      <p class="text-muted">Have questions? We're here to help.</p>
+    </div>
+    <div class="row g-4 justify-content-center">
+      <div class="col-md-4">
+        <div class="contact-card text-center">
+          <i class="fa fa-location-dot text-primary fs-3 mb-3"></i>
+          <h6 class="fw-bold">Address</h6>
+          <p class="text-muted small">123 Medical Plaza, Healthcare City</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="contact-card text-center">
+          <i class="fa fa-phone text-primary fs-3 mb-3"></i>
+          <h6 class="fw-bold">Phone</h6>
+          <p class="text-muted small">+1 (800) 123-4567</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="contact-card text-center">
+          <i class="fa fa-envelope text-primary fs-3 mb-3"></i>
+          <h6 class="fw-bold">Email</h6>
+          <p class="text-muted small">support@cliniccare.com</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer-section text-white py-5">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <i class="fa-solid fa-staff-snake fs-4"></i>
+          <span class="fw-bold fs-5">ClinicCare</span>
+        </div>
+        <p class="text-white-50 small">Smart healthcare management for modern clinics. Streamline operations, improve patient care.</p>
+        <div class="d-flex gap-3 mt-3">
+          <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+          <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+          <a href="#" class="social-icon"><i class="fab fa-linkedin-in"></i></a>
+          <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+        </div>
+      </div>
+      <div class="col-lg-2 col-md-4">
+        <h6 class="fw-bold mb-3">Quick Links</h6>
+        <ul class="list-unstyled">
+          <li><a href="#" class="footer-link">Home</a></li>
+          <li><a href="#features" class="footer-link">Features</a></li>
+          <li><a href="#about" class="footer-link">About</a></li>
+          <li><a href="#contact" class="footer-link">Contact</a></li>
+        </ul>
+      </div>
+      <div class="col-lg-3 col-md-4">
+        <h6 class="fw-bold mb-3">Services</h6>
+        <ul class="list-unstyled">
+          <li><a href="#" class="footer-link">Patient Management</a></li>
+          <li><a href="#" class="footer-link">Doctor Scheduling</a></li>
+          <li><a href="#" class="footer-link">Appointments</a></li>
+          <li><a href="#" class="footer-link">Medical Records</a></li>
+        </ul>
+      </div>
+      <div class="col-lg-3 col-md-4">
+        <h6 class="fw-bold mb-3">Contact Info</h6>
+        <p class="text-white-50 small"><i class="fa fa-location-dot me-2"></i>123 Medical Plaza, HC</p>
+        <p class="text-white-50 small"><i class="fa fa-phone me-2"></i>+1 (800) 123-4567</p>
+        <p class="text-white-50 small"><i class="fa fa-envelope me-2"></i>support@cliniccare.com</p>
+      </div>
+    </div>
+    <hr class="border-secondary mt-4"/>
+    <p class="text-center text-white-50 small mb-0">&copy; 2024 ClinicCare. All rights reserved.</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

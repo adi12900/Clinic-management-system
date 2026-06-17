@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Patient Login – ClinicCare</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+  <link href="assets/css/style.css" rel="stylesheet"/>
+  <style>
+    body { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); min-height: 100vh; display: flex; align-items: center; }
+    .login-card { border-radius: 18px; box-shadow: 0 20px 60px rgba(0,0,0,.2); overflow: hidden; max-width: 450px; margin: auto; }
+    .login-header { background: linear-gradient(135deg, #0f1c35 0%, #1a3a6c 100%); padding: 2.5rem 2rem; color: #fff; text-align: center; }
+    .login-body { background: #fff; padding: 2.5rem 2rem; }
+    .patient-avatar { width: 80px; height: 80px; background: rgba(255,255,255,.2); border: 3px solid rgba(255,255,255,.4); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1rem; }
+    .divider { display: flex; align-items: center; text-align: center; margin: 1.5rem 0; }
+    .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid #e2e8f0; }
+    .divider span { padding: 0 .75rem; font-size: .8rem; color: #718096; }
+  </style>
+</head>
+<body>
+<div class="container py-5">
+  <div class="login-card">
+    <!-- Header -->
+    <div class="login-header">
+      <div class="patient-avatar">
+        <i class="fa fa-user"></i>
+      </div>
+      <h4 class="fw-bold mb-2">Patient Portal</h4>
+      <p class="text-white-50 small mb-0">Access your appointments and medical records</p>
+    </div>
+    
+    <!-- Body -->
+    <div class="login-body">
+      <form id="patientLoginForm" novalidate>
+        <div class="mb-3">
+          <label class="form-label">Email Address</label>
+          <div class="input-group">
+            <span class="input-group-text bg-white"><i class="fa fa-envelope text-muted"></i></span>
+            <input type="email" class="form-control" id="emailInput" placeholder="patient@example.com" required/>
+          </div>
+          <div class="invalid-feedback">Please enter a valid email</div>
+        </div>
+        
+        <div class="mb-3">
+          <label class="form-label">Password</label>
+          <div class="input-group">
+            <span class="input-group-text bg-white"><i class="fa fa-lock text-muted"></i></span>
+            <input type="password" class="form-control" id="pwdInput" placeholder="••••••••" required/>
+            <button class="btn btn-outline-secondary" type="button" onclick="togglePwd()">
+              <i class="fa fa-eye" id="eyeIcon"></i>
+            </button>
+          </div>
+          <div class="invalid-feedback">Please enter your password</div>
+        </div>
+        
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="remember"/>
+            <label class="form-check-label small" for="remember">Remember me</label>
+          </div>
+          <a href="#" class="text-primary small text-decoration-none">Forgot password?</a>
+        </div>
+        
+        <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold mb-3">
+          <i class="fa fa-right-to-bracket me-2"></i>Sign In
+        </button>
+      </form>
+      
+      <div class="divider"><span>OR</span></div>
+      
+      <a href="#" class="btn btn-outline-primary w-100 py-2 mb-3" onclick="registerPatient(event)">
+        <i class="fa fa-user-plus me-2"></i>Register as New Patient
+      </a>
+      
+      <p class="text-center text-muted small mt-4 mb-0">
+        <a href="login.html" class="text-decoration-none text-primary me-3">
+          <i class="fa fa-user-doctor me-1"></i>Staff Login
+        </a>
+        <a href="index.html" class="text-decoration-none text-muted">
+          <i class="fa fa-home me-1"></i>Home
+        </a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function togglePwd() {
+    const inp = document.getElementById('pwdInput');
+    const ico = document.getElementById('eyeIcon');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+    ico.className = inp.type === 'password' ? 'fa fa-eye' : 'fa fa-eye-slash';
+  }
+
+  function registerPatient(e) {
+    e.preventDefault();
+    alert('Patient registration feature coming soon!');
+  }
+
+  document.getElementById('patientLoginForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const form = this;
+    const email = document.getElementById('emailInput').value;
+    const password = document.getElementById('pwdInput').value;
+    
+    if (!form.checkValidity()) {
+      form.classList.add('was-validated');
+      return;
+    }
+    
+    // Simulate login
+    console.log('Patient Login:', { email, password });
+    alert('Login successful! Redirecting to patient dashboard...');
+    window.location.href = 'patient-dashboard.html';
+  });
+</script>
+</body>
+</html>
