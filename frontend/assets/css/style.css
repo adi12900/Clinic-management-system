@@ -298,9 +298,17 @@ body {
 .btn-outline-primary:hover { background: var(--primary); border-color: var(--primary); color: #fff; }
 
 /* ===== UTILITIES ===== */
-.text-muted { color: #718096 !important; }
-.fw-semibold { font-weight: 600 !important; }
-.rounded-circle { border-radius: 50% !important; }
+.text-muted { 
+    color: #718096 !important; 
+}
+
+.fw-semibold { 
+    font-weight: 600 !important; 
+}
+
+.rounded-circle { 
+    border-radius: 50% !important; 
+}
 
 /* ===== ALERT ===== */
 .alert { border-radius: 10px; border: none; }
@@ -320,7 +328,7 @@ body {
   .about-icon-wrap { width: 200px; height: 200px; }
   .about-big-icon { font-size: 8rem; }
   .floating-card { font-size: .7rem; padding: .4rem .8rem; }
-}x; }
+}; 
 .info-value { color: #2d3748; }
 
 /* ===== PRESCRIPTION CARD ===== */
