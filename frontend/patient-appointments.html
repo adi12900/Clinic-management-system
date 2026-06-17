@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Appointments – ClinicCare</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+  <link href="assets/css/style.css" rel="stylesheet"/>
+</head>
+<body>
+
+<div class="dashboard-wrapper">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <i class="fa-solid fa-staff-snake"></i>
+      <span>ClinicCare</span>
+    </div>
+    <ul class="sidebar-nav">
+      <li class="nav-section">MAIN MENU</li>
+      <li><a href="patient-dashboard.html"><i class="fa fa-th-large"></i> Dashboard</a></li>
+      <li><a href="patient-book-appointment.html"><i class="fa fa-calendar-plus"></i> Book Appointment</a></li>
+      <li><a href="patient-appointments.html" class="active"><i class="fa fa-calendar-check"></i> My Appointments</a></li>
+      <li><a href="patient-medical-records.html"><i class="fa fa-file-medical"></i> Medical Records</a></li>
+      <li class="nav-section">ACCOUNT</li>
+      <li><a href="patient-profile.html"><i class="fa fa-user-circle"></i> My Profile</a></li>
+      <li><a href="#"><i class="fa fa-cog"></i> Settings</a></li>
+      <li class="logout-link"><a href="patient-login.html"><i class="fa fa-right-from-bracket"></i> Logout</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Topbar -->
+    <div class="topbar">
+      <h1 class="page-title">My Appointments</h1>
+      <div class="user-info">
+        <div class="avatar">JD</div>
+        <span class="fw-semibold">John Doe</span>
+      </div>
+    </div>
+
+    <!-- Dashboard Body -->
+    <div class="dashboard-body">
+      <!-- Action Bar -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="btn-group" role="group">
+          <input type="radio" class="btn-check" name="filter" id="all" checked onclick="filterAppointments('all')"/>
+          <label class="btn btn-outline-primary" for="all">All</label>
+          
+          <input type="radio" class="btn-check" name="filter" id="upcoming" onclick="filterAppointments('upcoming')"/>
+          <label class="btn btn-outline-primary" for="upcoming">Upcoming</label>
+          
+          <input type="radio" class="btn-check" name="filter" id="completed" onclick="filterAppointments('completed')"/>
+          <label class="btn btn-outline-primary" for="completed">Completed</label>
+          
+          <input type="radio" class="btn-check" name="filter" id="cancelled" onclick="filterAppointments('cancelled')"/>
+          <label class="btn btn-outline-primary" for="cancelled">Cancelled</label>
+        </div>
+        
+        <a href="patient-book-appointment.html" class="btn btn-primary">
+          <i class="fa fa-plus me-2"></i>Book New Appointment
+        </a>
+      </div>
+
+      <!-- Appointments Table -->
+      <div class="content-card">
+        <div class="card-header">
+          <i class="fa fa-calendar-check me-2 text-primary"></i>Appointment History
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Date & Time</th>
+                <th>Doctor</th>
+                <th>Specialization</th>
+                <th>Reason</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="appointmentsTable">
+              <!-- Upcoming Appointments -->
+              <tr data-status="upcoming">
+                <td>
+                  <div class="fw-semibold">Dec 24, 2024</div>
+                  <small class="text-muted">10:00 AM</small>
+                </td>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="avatar bg-primary" style="width: 36px; height: 36px; font-size: .8rem;">SJ</div>
+                    <span>Dr. Sarah Johnson</span>
+                  </div>
+                </td>
+                <td>Cardiologist</td>
+                <td><small class="text-muted">Follow-up checkup</small></td>
+                <td><span class="badge-status status-confirmed">Confirmed</span></td>
+                <td>
+                  <button class="btn btn-action btn-outline-danger" onclick="cancelAppointment(1)">
+                    <i class="fa fa-times"></i> Cancel
+                  </button>
+                  <button class="btn btn-action btn-outline-primary" onclick="rescheduleAppointment(1)">
+                    <i class="fa fa-clock"></i> Reschedule
+                  </button>
+                </td>
+              </tr>
+
+              <tr data-status="upcoming">
+                <td>
+                  <div class="fw-semibold">Dec 26, 2024</div>
+                  <small class="text-muted">02:30 PM</small>
+                </td>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="avatar bg-success" style="width: 36px; height: 36px; font-size: .8rem;">MC</div>
+                    <span>Dr. Michael Chen</span>
+                  </div>
+                </td>
+                <td>General Physician</td>
+                <td><small class="text-muted">Routine checkup</small></td>
+                <td><span class="badge-status status-pending">Pending</span></td>
+                <td>
+                  <button class="btn btn-action btn-outline-danger" onclick="cancelAppointment(2)">
+                    <i class="fa fa-times"></i> Cancel
+                  </button>
+                  <button class="btn btn-action btn-outline-primary" onclick="rescheduleAppointment(2)">
+                    <i class="fa fa-clock"></i> Reschedule
+                  </button>
+                </td>
+              </tr>
+
+              <!-- Completed Appointments -->
+              <tr data-status="completed">
+                <td>
+                  <div class="fw-semibold">Dec 15, 2024</div>
+                  <small class="text-muted">10:00 AM</small>
+                </td>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="avatar bg-primary" style="width: 36px; height: 36px; font-size: .8rem;">SJ</div>
+                    <span>Dr. Sarah Johnson</span>
+                  </div>
+                </td>
+                <td>Cardiologist</td>
+                <td><small class="text-muted">Headache & dizziness</small></td>
+                <td><span class="badge-status status-completed">Completed</span></td>
+                <td>
+                  <button class="btn btn-action btn-outline-primary" onclick="window.location.href='patient-medical-records.html'">
+                    <i class="fa fa-file-medical"></i> View Record
+                  </button>
+                </td>
+              </tr>
+
+              <tr data-status="completed">
+                <td>
+                  <div class="fw-semibold">Dec 10, 2024</div>
+                  <small class="text-muted">11:30 AM</small>
+                </td>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="avatar bg-success" style="width: 36px; height: 36px; font-size: .8rem;">MC</div>
+                    <span>Dr. Michael Chen</span>
+                  </div>
+                </td>
+                <td>General Physician</td>
+                <td><small class="text-muted">Cold & fever</small></td>
+                <td><span class="badge-status status-completed">Completed</span></td>
+                <td>
+                  <button class="btn btn-action btn-outline-primary">
+                    <i class="fa fa-file-medical"></i> View Record
+                  </button>
+                </td>
+              </tr>
+
+              <tr data-status="completed">
+                <td>
+                  <div class="fw-semibold">Dec 5, 2024</div>
+                  <small class="text-muted">03:00 PM</small>
+                </td>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="avatar bg-warning" style="width: 36px; height: 36px; font-size: .8rem;">EW</div>
+                    <span>Dr. Emily Wilson</span>
+                  </div>
+                </td>
+                <td>Dermatologist</td>
+                <td><small class="text-muted">Skin rash</small></td>
+                <td><span class="badge-status status-completed">Completed</span></td>
+                <td>
+                  <button class="btn btn-action btn-outline-primary">
+                    <i class="fa fa-file-medical"></i> View Record
+                  </button>
+                </td>
+              </tr>
+
+              <!-- Cancelled Appointment -->
+              <tr data-status="cancelled">
+                <td>
+                  <div class="fw-semibold">Nov 28, 2024</div>
+                  <small class="text-muted">09:00 AM</small>
+                </td>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="avatar bg-info" style="width: 36px; height: 36px; font-size: .8rem;">JM</div>
+                    <span>Dr. James Miller</span>
+                  </div>
+                </td>
+                <td>Neurologist</td>
+                <td><small class="text-muted">Consultation</small></td>
+                <td><span class="badge-status status-cancelled">Cancelled</span></td>
+                <td>
+                  <button class="btn btn-action btn-outline-primary" onclick="window.location.href='patient-book-appointment.html'">
+                    <i class="fa fa-redo"></i> Book Again
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function filterAppointments(status) {
+    const rows = document.querySelectorAll('#appointmentsTable tr');
+    rows.forEach(row => {
+      if (status === 'all') {
+        row.style.display = '';
+      } else {
+        row.style.display = row.dataset.status === status ? '' : 'none';
+      }
+    });
+  }
+
+  function cancelAppointment(id) {
+    if (confirm('Are you sure you want to cancel this appointment?')) {
+      alert('Appointment cancelled successfully!');
+      location.reload();
+    }
+  }
+
+  function rescheduleAppointment(id) {
+    if (confirm('Would you like to reschedule this appointment?')) {
+      window.location.href = 'patient-book-appointment.html';
+    }
+  }
+</script>
+</body>
+</html>

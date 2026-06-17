@@ -29,7 +29,7 @@ TOKEN_EXPIRY_HOURS = 24
 # ==========================================
 DATABASE_URL = "sqlite:///./clinic.db"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-SessionLocal = sessionmaker(bind=engine)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 
@@ -44,7 +44,7 @@ class User(Base):
     username = Column(String, unique=True, nullable=False)
     email = Column(String, unique=True, nullable=False)
     password = Column(String, nullable=False)
-    role = Column(String, default="admin")  # admin, doctor, receptionist
+    role = Column(String, default="admin")  # admin, doctor, patient
 
 
 # Doctor
@@ -421,3 +421,114 @@ def delete_appointment(id: int, current_user: User = Depends(get_current_user), 
     db.delete(appointment)
     db.commit()
     return {"message": "Appointment deleted successfully"}
+
+
+# ==========================================
+# 14. Patient Registration & Profile APIs
+# ==========================================
+
+# Patient Registration (No auth required)
+class PatientRegistrationSchema(BaseModel):
+    name: str
+    dob: date
+    gender: str
+    phone: str
+    email: str
+    address: str
+    password: str
+
+
+@app.post("/patient/register", status_code=status.HTTP_201_CREATED)
+def patient_register(data: PatientRegistrationSchema, db: Session = Depends(get_db)):
+    # Check if email already exists
+    if db.query(User).filter(User.email == data.email).first():
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Create user account
+    user = User(
+        username=data.name,
+        email=data.email,
+        password=hash_password(data.password),
+        role="patient"
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    
+    # Calculate age from DOB
+    from datetime import datetime
+    today = datetime.now().date()
+    age = today.year - data.dob.year - ((today.month, today.day) < (data.dob.month, data.dob.day))
+    
+    # Create patient record
+    patient = Patient(
+        name=data.name,
+        age=age,
+        gender=data.gender,
+        phone=data.phone,
+        email=data.email,
+        address=data.address
+    )
+    db.add(patient)
+    db.commit()
+    db.refresh(patient)
+    
+    return {
+        "message": "Patient registered successfully",
+        "user_id": user.id,
+        "patient_id": patient.id
+    }
+
+
+# Doctor Registration (No auth required)
+class DoctorRegistrationSchema(BaseModel):
+    first_name: str
+    last_name: str
+    dob: date
+    gender: str
+    license_number: str
+    specialization: str
+    experience: int
+    qualification: str
+    medical_school: str
+    phone: str
+    email: str
+    address: str
+    password: str
+
+
+@app.post("/doctor/register", status_code=status.HTTP_201_CREATED)
+def doctor_register(data: DoctorRegistrationSchema, db: Session = Depends(get_db)):
+    # Check if email already exists
+    if db.query(User).filter(User.email == data.email).first():
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Create user account
+    full_name = f"{data.first_name} {data.last_name}"
+    user = User(
+        username=full_name,
+        email=data.email,
+        password=hash_password(data.password),
+        role="doctor"
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    
+    # Create doctor record
+    doctor = Doctor(
+        name=full_name,
+        specialization=data.specialization,
+        phone=data.phone,
+        email=data.email,
+        available_days="Mon,Tue,Wed,Thu,Fri"
+    )
+    db.add(doctor)
+    db.commit()
+    db.refresh(doctor)
+    
+    return {
+        "message": "Doctor registration successful. Awaiting admin approval.",
+        "user_id": user.id,
+        "doctor_id": doctor.id
+    }
