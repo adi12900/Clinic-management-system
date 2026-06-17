@@ -29,8 +29,10 @@
       <h3 class="fw-bold mb-2">Patient Registration</h3>
       <p class="text-white-50 small mb-0">Create your account to book appointments</p>
     </div>
-    
+
     <div class="registration-body">
+      <div id="regAlert" class="alert d-none"></div>
+
       <!-- Step Indicator -->
       <div class="step-indicator">
         <div class="step-dot active" data-step="1"></div>
@@ -49,17 +51,17 @@
               <div class="invalid-feedback">Please enter your full name</div>
             </div>
             <div class="col-md-6">
-              <label class="form-label">Date of Birth <span class="text-danger">*</span></label>
-              <input type="date" class="form-control" id="dob" required/>
-              <div class="invalid-feedback">Please select your date of birth</div>
+              <label class="form-label">Age <span class="text-danger">*</span></label>
+              <input type="number" class="form-control" id="age" placeholder="25" min="1" max="150" required/>
+              <div class="invalid-feedback">Please enter a valid age</div>
             </div>
             <div class="col-md-6">
               <label class="form-label">Gender <span class="text-danger">*</span></label>
               <select class="form-select" id="gender" required>
                 <option value="">Select Gender</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="other">Other</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
               </select>
               <div class="invalid-feedback">Please select your gender</div>
             </div>
@@ -86,9 +88,8 @@
               <div class="invalid-feedback">Please enter a valid email</div>
             </div>
             <div class="col-12">
-              <label class="form-label">Address <span class="text-danger">*</span></label>
-              <textarea class="form-control" id="address" rows="3" placeholder="123 Main Street, City, State, ZIP" required></textarea>
-              <div class="invalid-feedback">Please enter your address</div>
+              <label class="form-label">Address</label>
+              <textarea class="form-control" id="address" rows="3" placeholder="123 Main Street, City, State"></textarea>
             </div>
           </div>
           <div class="d-flex justify-content-between mt-4">
@@ -101,7 +102,7 @@
           </div>
         </div>
 
-        <!-- Step 3: Security -->
+        <!-- Step 3: Account Security -->
         <div class="form-step" id="step3">
           <h5 class="fw-bold mb-4 text-center">Account Security</h5>
           <div class="row g-3">
@@ -109,21 +110,19 @@
               <label class="form-label">Password <span class="text-danger">*</span></label>
               <div class="input-group">
                 <input type="password" class="form-control" id="password" placeholder="••••••••" required minlength="8"/>
-                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password', 'eyeIcon1')">
+                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password','eyeIcon1')">
                   <i class="fa fa-eye" id="eyeIcon1"></i>
                 </button>
               </div>
-              <div class="password-strength">
-                <div class="password-strength-bar" id="strengthBar"></div>
-              </div>
-              <small class="text-muted">Minimum 8 characters, include uppercase, lowercase, and number</small>
+              <div class="password-strength"><div class="password-strength-bar" id="strengthBar"></div></div>
+              <small class="text-muted">Minimum 8 characters</small>
               <div class="invalid-feedback">Password must be at least 8 characters</div>
             </div>
             <div class="col-12">
               <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
               <div class="input-group">
                 <input type="password" class="form-control" id="confirmPassword" placeholder="••••••••" required/>
-                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirmPassword', 'eyeIcon2')">
+                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirmPassword','eyeIcon2')">
                   <i class="fa fa-eye" id="eyeIcon2"></i>
                 </button>
               </div>
@@ -133,7 +132,7 @@
               <div class="form-check">
                 <input class="form-check-input" type="checkbox" id="terms" required/>
                 <label class="form-check-label small" for="terms">
-                  I agree to the <a href="#" class="text-primary">Terms & Conditions</a> and <a href="#" class="text-primary">Privacy Policy</a>
+                  I agree to the <a href="#" class="text-primary">Terms & Conditions</a>
                 </label>
                 <div class="invalid-feedback">You must agree to continue</div>
               </div>
@@ -143,7 +142,7 @@
             <button type="button" class="btn btn-outline-secondary px-4" onclick="prevStep(3)">
               <i class="fa fa-arrow-left me-2"></i> Back
             </button>
-            <button type="submit" class="btn btn-primary px-4">
+            <button type="submit" class="btn btn-primary px-4" id="submitBtn">
               <i class="fa fa-check me-2"></i> Register
             </button>
           </div>
@@ -159,28 +158,21 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+  const API = 'http://127.0.0.1:8000';
+
   function nextStep(current) {
-    const step = document.getElementById('step' + current);
-    const inputs = step.querySelectorAll('input, select, textarea');
+    const step   = document.getElementById('step' + current);
+    const inputs = step.querySelectorAll('input[required], select[required]');
     let valid = true;
-
-    inputs.forEach(input => {
-      if (!input.checkValidity()) {
-        valid = false;
-        input.classList.add('is-invalid');
-      } else {
-        input.classList.remove('is-invalid');
-      }
+    inputs.forEach(inp => {
+      if (!inp.checkValidity()) { valid = false; inp.classList.add('is-invalid'); }
+      else inp.classList.remove('is-invalid');
     });
-
-    if (valid) {
-      step.classList.remove('active');
-      document.getElementById('step' + (current + 1)).classList.add('active');
-      document.querySelector(`.step-dot[data-step="${current}"]`).classList.remove('active');
-      document.querySelector(`.step-dot[data-step="${current + 1}"]`).classList.add('active');
-    } else {
-      document.getElementById('registrationForm').classList.add('was-validated');
-    }
+    if (!valid) return;
+    step.classList.remove('active');
+    document.getElementById('step' + (current + 1)).classList.add('active');
+    document.querySelector(`.step-dot[data-step="${current}"]`).classList.remove('active');
+    document.querySelector(`.step-dot[data-step="${current + 1}"]`).classList.add('active');
   }
 
   function prevStep(current) {
@@ -191,62 +183,95 @@
   }
 
   function togglePassword(fieldId, iconId) {
-    const field = document.getElementById(fieldId);
-    const icon = document.getElementById(iconId);
-    field.type = field.type === 'password' ? 'text' : 'password';
-    icon.className = field.type === 'password' ? 'fa fa-eye' : 'fa fa-eye-slash';
+    const f = document.getElementById(fieldId);
+    const i = document.getElementById(iconId);
+    f.type = f.type === 'password' ? 'text' : 'password';
+    i.className = f.type === 'password' ? 'fa fa-eye' : 'fa fa-eye-slash';
   }
 
-  // Password strength indicator
-  document.getElementById('password').addEventListener('input', function(e) {
-    const password = e.target.value;
+  document.getElementById('password').addEventListener('input', function() {
     const bar = document.getElementById('strengthBar');
-    let strength = 0;
-
-    if (password.length >= 8) strength += 25;
-    if (/[a-z]/.test(password)) strength += 25;
-    if (/[A-Z]/.test(password)) strength += 25;
-    if (/[0-9]/.test(password)) strength += 25;
-
-    bar.style.width = strength + '%';
-    if (strength <= 25) bar.style.background = '#ef4444';
-    else if (strength <= 50) bar.style.background = '#f59e0b';
-    else if (strength <= 75) bar.style.background = '#3b82f6';
-    else bar.style.background = '#10b981';
+    let s = 0;
+    if (this.value.length >= 8) s += 25;
+    if (/[a-z]/.test(this.value)) s += 25;
+    if (/[A-Z]/.test(this.value)) s += 25;
+    if (/[0-9]/.test(this.value)) s += 25;
+    bar.style.width = s + '%';
+    bar.style.background = s <= 25 ? '#ef4444' : s <= 50 ? '#f59e0b' : s <= 75 ? '#3b82f6' : '#10b981';
   });
 
-  // Password match validation
-  document.getElementById('confirmPassword').addEventListener('input', function(e) {
-    const password = document.getElementById('password').value;
-    if (e.target.value !== password) {
-      e.target.setCustomValidity('Passwords do not match');
-    } else {
-      e.target.setCustomValidity('');
-    }
+  document.getElementById('confirmPassword').addEventListener('input', function() {
+    const pwd = document.getElementById('password').value;
+    this.setCustomValidity(this.value !== pwd ? 'Passwords do not match' : '');
   });
 
-  // Form submission
-  document.getElementById('registrationForm').addEventListener('submit', function(e) {
+  document.getElementById('registrationForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-    
-    if (!this.checkValidity()) {
-      this.classList.add('was-validated');
-      return;
+    if (!this.checkValidity()) { this.classList.add('was-validated'); return; }
+
+    const alertDiv = document.getElementById('regAlert');
+    const btn      = document.getElementById('submitBtn');
+    alertDiv.classList.add('d-none');
+
+    const name     = document.getElementById('fullName').value.trim();
+    const age      = parseInt(document.getElementById('age').value);
+    const gender   = document.getElementById('gender').value;
+    const phone    = document.getElementById('phone').value.trim();
+    const email    = document.getElementById('email').value.trim();
+    const address  = document.getElementById('address').value.trim();
+    const password = document.getElementById('password').value;
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Registering...';
+
+    try {
+      // Step 1: Create user account
+      const signupRes = await fetch(`${API}/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: name, email, password, role: 'patient' })
+      });
+      const signupData = await signupRes.json();
+      if (!signupRes.ok) {
+        throw new Error(signupData.detail || 'Signup failed.');
+      }
+
+      // Step 2: Login to get token
+      const loginRes = await fetch(`${API}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const loginData = await loginRes.json();
+      if (!loginRes.ok) throw new Error('Auto-login failed after registration.');
+
+      // Step 3: Create patient record
+      await fetch(`${API}/patients`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${loginData.access_token}`
+        },
+        body: JSON.stringify({ name, age, gender, phone, email, address })
+      });
+
+      localStorage.setItem('token', loginData.access_token);
+      localStorage.setItem('role', loginData.role);
+      localStorage.setItem('email', email);
+
+      alertDiv.className = 'alert alert-success';
+      alertDiv.textContent = 'Registration successful! Redirecting...';
+      alertDiv.classList.remove('d-none');
+
+      setTimeout(() => window.location.href = 'patient-dashboard.html', 1500);
+    } catch (err) {
+      alertDiv.className = 'alert alert-danger';
+      alertDiv.textContent = err.message || 'Registration failed. Try again.';
+      alertDiv.classList.remove('d-none');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa fa-check me-2"></i> Register';
     }
-
-    const formData = {
-      fullName: document.getElementById('fullName').value,
-      dob: document.getElementById('dob').value,
-      gender: document.getElementById('gender').value,
-      phone: document.getElementById('phone').value,
-      email: document.getElementById('email').value,
-      address: document.getElementById('address').value,
-      password: document.getElementById('password').value
-    };
-
-    console.log('Registration Data:', formData);
-    alert('Registration successful! Redirecting to login...');
-    window.location.href = 'patient-login.html';
   });
 </script>
 </body>

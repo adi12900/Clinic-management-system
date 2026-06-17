@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard – ClinicCare</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+  <link href="assets/css/style.css" rel="stylesheet"/>
+</head>
+<body>
+<div class="dashboard-wrapper">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <i class="fa-solid fa-staff-snake"></i>
+      <span>ClinicCare</span>
+    </div>
+    <ul class="sidebar-nav">
+      <li class="nav-section">MAIN MENU</li>
+      <li><a href="#" class="active" onclick="showSection('dashboard',this)"><i class="fa fa-th-large"></i> Dashboard</a></li>
+      <li><a href="#" onclick="showSection('doctors',this)"><i class="fa fa-user-doctor"></i> Doctors</a></li>
+      <li><a href="#" onclick="showSection('patients',this)"><i class="fa fa-users"></i> Patients</a></li>
+      <li><a href="#" onclick="showSection('appointments',this)"><i class="fa fa-calendar-check"></i> Appointments</a></li>
+      <li class="nav-section">ACCOUNT</li>
+      <li class="logout-link"><a href="#" onclick="doLogout()"><i class="fa fa-right-from-bracket"></i> Logout</a></li>
+    </ul>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="topbar">
+      <div class="d-flex align-items-center gap-3">
+        <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
+        <h1 class="page-title" id="pageTitle">Dashboard</h1>
+      </div>
+      <div class="user-info">
+        <div class="avatar" id="userAvatar">AD</div>
+        <span class="fw-semibold" id="userEmail">Admin</span>
+      </div>
+    </div>
+
+    <div class="dashboard-body">
+
+      <!-- ===== DASHBOARD SECTION ===== -->
+      <div id="sec-dashboard">
+        <div class="row g-3 mb-4">
+          <div class="col-md-3 col-sm-6">
+            <div class="kpi-card">
+              <div class="kpi-icon bg-primary-soft text-primary"><i class="fa fa-user-doctor"></i></div>
+              <div><div class="kpi-num text-primary" id="d-doctors">—</div><div class="kpi-label">Doctors</div></div>
+            </div>
+          </div>
+          <div class="col-md-3 col-sm-6">
+            <div class="kpi-card">
+              <div class="kpi-icon bg-success-soft text-success"><i class="fa fa-users"></i></div>
+              <div><div class="kpi-num text-success" id="d-patients">—</div><div class="kpi-label">Patients</div></div>
+            </div>
+          </div>
+          <div class="col-md-3 col-sm-6">
+            <div class="kpi-card">
+              <div class="kpi-icon bg-warning-soft text-warning"><i class="fa fa-clock"></i></div>
+              <div><div class="kpi-num text-warning" id="d-scheduled">—</div><div class="kpi-label">Scheduled</div></div>
+            </div>
+          </div>
+          <div class="col-md-3 col-sm-6">
+            <div class="kpi-card">
+              <div class="kpi-icon bg-info-soft text-info"><i class="fa fa-check-circle"></i></div>
+              <div><div class="kpi-num text-info" id="d-completed">—</div><div class="kpi-label">Completed</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="content-card p-4">
+          <p class="text-muted mb-0">Use the sidebar to manage <strong>Doctors</strong>, <strong>Patients</strong>, and <strong>Appointments</strong>.</p>
+        </div>
+      </div>
+
+      <!-- ===== DOCTORS SECTION ===== -->
+      <div id="sec-doctors" class="d-none">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <span class="text-muted small">Manage clinic doctors</span>
+          <button class="btn btn-primary btn-sm" onclick="openDoctorModal()">
+            <i class="fa fa-plus me-1"></i> Add Doctor
+          </button>
+        </div>
+        <div class="content-card">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead><tr><th>#</th><th>Name</th><th>Specialization</th><th>Phone</th><th>Email</th><th>Available Days</th><th>Actions</th></tr></thead>
+              <tbody id="doctorsTable"><tr><td colspan="7" class="text-center text-muted py-4">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== PATIENTS SECTION ===== -->
+      <div id="sec-patients" class="d-none">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <span class="text-muted small">Manage registered patients</span>
+          <button class="btn btn-primary btn-sm" onclick="openPatientModal()">
+            <i class="fa fa-plus me-1"></i> Add Patient
+          </button>
+        </div>
+        <div class="content-card">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead><tr><th>#</th><th>Name</th><th>Age</th><th>Gender</th><th>Phone</th><th>Email</th><th>Actions</th></tr></thead>
+              <tbody id="patientsTable"><tr><td colspan="7" class="text-center text-muted py-4">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== APPOINTMENTS SECTION ===== -->
+      <div id="sec-appointments" class="d-none">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <span class="text-muted small">Manage appointments</span>
+          <button class="btn btn-primary btn-sm" onclick="openApptModal()">
+            <i class="fa fa-plus me-1"></i> Add Appointment
+          </button>
+        </div>
+        <div class="content-card">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead><tr><th>#</th><th>Patient ID</th><th>Doctor ID</th><th>Date</th><th>Status</th><th>Notes</th><th>Actions</th></tr></thead>
+              <tbody id="apptsTable"><tr><td colspan="7" class="text-center text-muted py-4">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- ===== DOCTOR MODAL ===== -->
+<div class="modal fade" id="doctorModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="doctorModalTitle">Add Doctor</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="doctorId"/>
+        <div class="mb-3"><label class="form-label">Name *</label><input class="form-control" id="dName" required/></div>
+        <div class="mb-3"><label class="form-label">Specialization *</label><input class="form-control" id="dSpec" required/></div>
+        <div class="mb-3"><label class="form-label">Phone</label><input class="form-control" id="dPhone"/></div>
+        <div class="mb-3"><label class="form-label">Email</label><input class="form-control" id="dEmail" type="email"/></div>
+        <div class="mb-3"><label class="form-label">Available Days</label><input class="form-control" id="dDays" placeholder="Mon,Tue,Wed"/></div>
+        <div id="doctorError" class="alert alert-danger d-none"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" id="doctorSaveBtn" onclick="saveDoctor()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PATIENT MODAL ===== -->
+<div class="modal fade" id="patientModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="patientModalTitle">Add Patient</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="patientId"/>
+        <div class="mb-3"><label class="form-label">Name *</label><input class="form-control" id="pName" required/></div>
+        <div class="row g-2 mb-3">
+          <div class="col"><label class="form-label">Age</label><input class="form-control" id="pAge" type="number" min="1"/></div>
+          <div class="col"><label class="form-label">Gender</label>
+            <select class="form-select" id="pGender">
+              <option value="">Select</option><option>Male</option><option>Female</option><option>Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="mb-3"><label class="form-label">Phone</label><input class="form-control" id="pPhone"/></div>
+        <div class="mb-3"><label class="form-label">Email</label><input class="form-control" id="pEmail" type="email"/></div>
+        <div class="mb-3"><label class="form-label">Address</label><textarea class="form-control" id="pAddress" rows="2"></textarea></div>
+        <div id="patientError" class="alert alert-danger d-none"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" onclick="savePatient()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== APPOINTMENT MODAL ===== -->
+<div class="modal fade" id="apptModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="apptModalTitle">Add Appointment</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="apptId"/>
+        <div class="mb-3"><label class="form-label">Patient ID *</label><input class="form-control" id="aPatientId" type="number" required/></div>
+        <div class="mb-3"><label class="form-label">Doctor ID *</label><input class="form-control" id="aDoctorId" type="number" required/></div>
+        <div class="mb-3"><label class="form-label">Date *</label><input class="form-control" id="aDate" type="date" required/></div>
+        <div class="mb-3"><label class="form-label">Status</label>
+          <select class="form-select" id="aStatus">
+            <option value="scheduled">Scheduled</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div class="mb-3"><label class="form-label">Notes</label><textarea class="form-control" id="aNotes" rows="2"></textarea></div>
+        <div id="apptError" class="alert alert-danger d-none"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" onclick="saveAppt()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const API = 'http://127.0.0.1:8000';
+const token = localStorage.getItem('token');
+if (!token) window.location.href = 'login.html';
+
+const email = localStorage.getItem('email') || 'Admin';
+document.getElementById('userEmail').textContent = email;
+document.getElementById('userAvatar').textContent = email.substring(0,2).toUpperCase();
+
+function authHdr() {
+  return { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+}
+
+// ---- Section navigation ----
+function showSection(name, el) {
+  ['dashboard','doctors','patients','appointments'].forEach(s => {
+    document.getElementById('sec-' + s).classList.add('d-none');
+  });
+  document.getElementById('sec-' + name).classList.remove('d-none');
+  document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+  if (el) el.classList.add('active');
+  document.getElementById('pageTitle').textContent = name.charAt(0).toUpperCase() + name.slice(1);
+  if (name === 'dashboard') loadDashboard();
+  if (name === 'doctors')   loadDoctors();
+  if (name === 'patients')  loadPatients();
+  if (name === 'appointments') loadAppts();
+  toggleSidebar(true);
+}
+
+function toggleSidebar(forceClose) {
+  const s = document.getElementById('sidebar');
+  const o = document.getElementById('sidebarOverlay');
+  if (forceClose) { s.classList.remove('open'); o.classList.remove('open'); return; }
+  s.classList.toggle('open'); o.classList.toggle('open');
+}
+
+function doLogout() {
+  localStorage.clear();
+  window.location.href = 'login.html';
+}
+
+// ---- Dashboard ----
+async function loadDashboard() {
+  const res  = await fetch(`${API}/dashboard`, { headers: authHdr() });
+  if (res.status === 401) { doLogout(); return; }
+  const d = await res.json();
+  document.getElementById('d-doctors').textContent   = d.total_doctors;
+  document.getElementById('d-patients').textContent  = d.total_patients;
+  document.getElementById('d-scheduled').textContent = d.scheduled;
+  document.getElementById('d-completed').textContent = d.completed;
+}
+
+// ---- Doctors ----
+async function loadDoctors() {
+  const res  = await fetch(`${API}/doctors`, { headers: authHdr() });
+  const data = await res.json();
+  const tbody = document.getElementById('doctorsTable');
+  if (!data.length) { tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">No doctors found.</td></tr>'; return; }
+  tbody.innerHTML = data.map((d,i) => `
+    <tr>
+      <td>${i+1}</td><td>${d.name}</td><td>${d.specialization}</td>
+      <td>${d.phone||'—'}</td><td>${d.email||'—'}</td><td>${d.available_days||'—'}</td>
+      <td>
+        <button class="btn btn-action btn-outline-primary me-1" onclick="editDoctor(${d.id})"><i class="fa fa-edit"></i></button>
+        <button class="btn btn-action btn-outline-danger" onclick="deleteDoctor(${d.id})"><i class="fa fa-trash"></i></button>
+      </td>
+    </tr>`).join('');
+}
+
+function openDoctorModal(d) {
+  document.getElementById('doctorModalTitle').textContent = d ? 'Edit Doctor' : 'Add Doctor';
+  document.getElementById('doctorId').value  = d ? d.id  : '';
+  document.getElementById('dName').value     = d ? d.name : '';
+  document.getElementById('dSpec').value     = d ? d.specialization : '';
+  document.getElementById('dPhone').value    = d ? d.phone||'' : '';
+  document.getElementById('dEmail').value    = d ? d.email||'' : '';
+  document.getElementById('dDays').value     = d ? d.available_days||'' : '';
+  document.getElementById('doctorError').classList.add('d-none');
+  new bootstrap.Modal(document.getElementById('doctorModal')).show();
+}
+
+async function editDoctor(id) {
+  const res = await fetch(`${API}/doctors/${id}`, { headers: authHdr() });
+  openDoctorModal(await res.json());
+}
+
+async function saveDoctor() {
+  const id   = document.getElementById('doctorId').value;
+  const body = {
+    name: document.getElementById('dName').value.trim(),
+    specialization: document.getElementById('dSpec').value.trim(),
+    phone: document.getElementById('dPhone').value.trim() || null,
+    email: document.getElementById('dEmail').value.trim() || null,
+    available_days: document.getElementById('dDays').value.trim() || null,
+  };
+  const errDiv = document.getElementById('doctorError');
+  if (!body.name || !body.specialization) {
+    errDiv.textContent = 'Name and Specialization are required.'; errDiv.classList.remove('d-none'); return;
+  }
+  const res = await fetch(`${API}/doctors${id ? '/'+id : ''}`, {
+    method: id ? 'PUT' : 'POST', headers: authHdr(), body: JSON.stringify(body)
+  });
+  if (!res.ok) { const e = await res.json(); errDiv.textContent = e.detail; errDiv.classList.remove('d-none'); return; }
+  bootstrap.Modal.getInstance(document.getElementById('doctorModal')).hide();
+  loadDoctors(); loadDashboard();
+}
+
+async function deleteDoctor(id) {
+  if (!confirm('Delete this doctor?')) return;
+  await fetch(`${API}/doctors/${id}`, { method: 'DELETE', headers: authHdr() });
+  loadDoctors(); loadDashboard();
+}
+
+// ---- Patients ----
+async function loadPatients() {
+  const res  = await fetch(`${API}/patients`, { headers: authHdr() });
+  const data = await res.json();
+  const tbody = document.getElementById('patientsTable');
+  if (!data.length) { tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">No patients found.</td></tr>'; return; }
+  tbody.innerHTML = data.map((p,i) => `
+    <tr>
+      <td>${i+1}</td><td>${p.name}</td><td>${p.age||'—'}</td><td>${p.gender||'—'}</td>
+      <td>${p.phone||'—'}</td><td>${p.email||'—'}</td>
+      <td>
+        <button class="btn btn-action btn-outline-primary me-1" onclick="editPatient(${p.id})"><i class="fa fa-edit"></i></button>
+        <button class="btn btn-action btn-outline-danger" onclick="deletePatient(${p.id})"><i class="fa fa-trash"></i></button>
+      </td>
+    </tr>`).join('');
+}
+
+function openPatientModal(p) {
+  document.getElementById('patientModalTitle').textContent = p ? 'Edit Patient' : 'Add Patient';
+  document.getElementById('patientId').value = p ? p.id   : '';
+  document.getElementById('pName').value     = p ? p.name : '';
+  document.getElementById('pAge').value      = p ? p.age||'' : '';
+  document.getElementById('pGender').value   = p ? p.gender||'' : '';
+  document.getElementById('pPhone').value    = p ? p.phone||'' : '';
+  document.getElementById('pEmail').value    = p ? p.email||'' : '';
+  document.getElementById('pAddress').value  = p ? p.address||'' : '';
+  document.getElementById('patientError').classList.add('d-none');
+  new bootstrap.Modal(document.getElementById('patientModal')).show();
+}
+
+async function editPatient(id) {
+  const res = await fetch(`${API}/patients/${id}`, { headers: authHdr() });
+  openPatientModal(await res.json());
+}
+
+async function savePatient() {
+  const id   = document.getElementById('patientId').value;
+  const body = {
+    name:    document.getElementById('pName').value.trim(),
+    age:     parseInt(document.getElementById('pAge').value)||null,
+    gender:  document.getElementById('pGender').value||null,
+    phone:   document.getElementById('pPhone').value.trim()||null,
+    email:   document.getElementById('pEmail').value.trim()||null,
+    address: document.getElementById('pAddress').value.trim()||null,
+  };
+  const errDiv = document.getElementById('patientError');
+  if (!body.name) { errDiv.textContent = 'Name is required.'; errDiv.classList.remove('d-none'); return; }
+  const res = await fetch(`${API}/patients${id ? '/'+id : ''}`, {
+    method: id ? 'PUT' : 'POST', headers: authHdr(), body: JSON.stringify(body)
+  });
+  if (!res.ok) { const e = await res.json(); errDiv.textContent = e.detail; errDiv.classList.remove('d-none'); return; }
+  bootstrap.Modal.getInstance(document.getElementById('patientModal')).hide();
+  loadPatients(); loadDashboard();
+}
+
+async function deletePatient(id) {
+  if (!confirm('Delete this patient?')) return;
+  await fetch(`${API}/patients/${id}`, { method: 'DELETE', headers: authHdr() });
+  loadPatients(); loadDashboard();
+}
+
+// ---- Appointments ----
+const statusClass = { scheduled: 'status-pending', completed: 'status-completed', cancelled: 'status-cancelled' };
+
+async function loadAppts() {
+  const res  = await fetch(`${API}/appointments`, { headers: authHdr() });
+  const data = await res.json();
+  const tbody = document.getElementById('apptsTable');
+  if (!data.length) { tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">No appointments found.</td></tr>'; return; }
+  tbody.innerHTML = data.map((a,i) => `
+    <tr>
+      <td>${i+1}</td><td>#P${a.patient_id}</td><td>#D${a.doctor_id}</td>
+      <td>${a.appointment_date}</td>
+      <td><span class="badge-status ${statusClass[a.status]||'status-pending'}">${a.status}</span></td>
+      <td>${a.notes||'—'}</td>
+      <td>
+        <button class="btn btn-action btn-outline-primary me-1" onclick="editAppt(${a.id})"><i class="fa fa-edit"></i></button>
+        <button class="btn btn-action btn-outline-danger" onclick="deleteAppt(${a.id})"><i class="fa fa-trash"></i></button>
+      </td>
+    </tr>`).join('');
+}
+
+function openApptModal(a) {
+  document.getElementById('apptModalTitle').textContent = a ? 'Edit Appointment' : 'Add Appointment';
+  document.getElementById('apptId').value     = a ? a.id : '';
+  document.getElementById('aPatientId').value = a ? a.patient_id : '';
+  document.getElementById('aDoctorId').value  = a ? a.doctor_id : '';
+  document.getElementById('aDate').value      = a ? a.appointment_date : '';
+  document.getElementById('aStatus').value    = a ? a.status : 'scheduled';
+  document.getElementById('aNotes').value     = a ? a.notes||'' : '';
+  document.getElementById('apptError').classList.add('d-none');
+  new bootstrap.Modal(document.getElementById('apptModal')).show();
+}
+
+async function editAppt(id) {
+  const res = await fetch(`${API}/appointments/${id}`, { headers: authHdr() });
+  openApptModal(await res.json());
+}
+
+async function saveAppt() {
+  const id   = document.getElementById('apptId').value;
+  const body = {
+    patient_id:       parseInt(document.getElementById('aPatientId').value),
+    doctor_id:        parseInt(document.getElementById('aDoctorId').value),
+    appointment_date: document.getElementById('aDate').value,
+    status:           document.getElementById('aStatus').value,
+    notes:            document.getElementById('aNotes').value.trim()||null,
+  };
+  const errDiv = document.getElementById('apptError');
+  if (!body.patient_id || !body.doctor_id || !body.appointment_date) {
+    errDiv.textContent = 'Patient ID, Doctor ID and Date are required.'; errDiv.classList.remove('d-none'); return;
+  }
+  const res = await fetch(`${API}/appointments${id ? '/'+id : ''}`, {
+    method: id ? 'PUT' : 'POST', headers: authHdr(), body: JSON.stringify(body)
+  });
+  if (!res.ok) { const e = await res.json(); errDiv.textContent = e.detail; errDiv.classList.remove('d-none'); return; }
+  bootstrap.Modal.getInstance(document.getElementById('apptModal')).hide();
+  loadAppts(); loadDashboard();
+}
+
+async function deleteAppt(id) {
+  if (!confirm('Delete this appointment?')) return;
+  await fetch(`${API}/appointments/${id}`, { method: 'DELETE', headers: authHdr() });
+  loadAppts(); loadDashboard();
+}
+
+// Initial load
+loadDashboard();
+</script>
+</body>
+</html>
