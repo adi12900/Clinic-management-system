@@ -8,20 +8,17 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
   <link href="assets/css/style.css" rel="stylesheet"/>
   <style>
-    .doctor-card { cursor: pointer; border: 2px solid #f0f4f8; transition: all .2s; }
-    .doctor-card:hover { border-color: #667eea; transform: translateY(-2px); }
+    .doctor-card { cursor: pointer; border: 2px solid #f0f4f8; transition: all .2s; border-radius: 12px; }
+    .doctor-card:hover { border-color: #667eea; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(102,126,234,.15); }
     .doctor-card.selected { border-color: #667eea; background: #f0f4ff; }
-    .time-slot { border: 2px solid #e2e8f0; border-radius: 8px; padding: .5rem 1rem; cursor: pointer; transition: all .2s; text-align: center; }
-    .time-slot:hover { border-color: #667eea; background: #f0f4ff; }
-    .time-slot.selected { border-color: #667eea; background: #667eea; color: #fff; }
-    .time-slot.unavailable { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; opacity: .5; }
+    .step-circle { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .9rem; }
+    .avatar-colors { background: linear-gradient(135deg, #667eea, #764ba2); }
   </style>
 </head>
 <body>
-
 <div class="dashboard-wrapper">
   <!-- Sidebar -->
-  <aside class="sidebar">
+  <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
       <i class="fa-solid fa-staff-snake"></i>
       <span>ClinicCare</span>
@@ -31,231 +28,146 @@
       <li><a href="patient-dashboard.html"><i class="fa fa-th-large"></i> Dashboard</a></li>
       <li><a href="patient-book-appointment.html" class="active"><i class="fa fa-calendar-plus"></i> Book Appointment</a></li>
       <li><a href="patient-appointments.html"><i class="fa fa-calendar-check"></i> My Appointments</a></li>
-      <li><a href="patient-medical-records.html"><i class="fa fa-file-medical"></i> Medical Records</a></li>
       <li class="nav-section">ACCOUNT</li>
       <li><a href="patient-profile.html"><i class="fa fa-user-circle"></i> My Profile</a></li>
-      <li><a href="#"><i class="fa fa-cog"></i> Settings</a></li>
-      <li class="logout-link"><a href="patient-login.html"><i class="fa fa-right-from-bracket"></i> Logout</a></li>
+      <li class="logout-link"><a href="#" onclick="doLogout()"><i class="fa fa-right-from-bracket"></i> Logout</a></li>
     </ul>
   </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
-  <!-- Main Content -->
   <main class="main-content">
-    <!-- Topbar -->
     <div class="topbar">
-      <h1 class="page-title">Book Appointment</h1>
+      <div class="d-flex align-items-center gap-3">
+        <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
+        <h1 class="page-title">Book Appointment</h1>
+      </div>
       <div class="user-info">
-        <div class="avatar">JD</div>
-        <span class="fw-semibold">John Doe</span>
+        <div class="avatar" id="userAvatar">--</div>
+        <span class="fw-semibold" id="userEmail">Loading...</span>
       </div>
     </div>
 
-    <!-- Dashboard Body -->
     <div class="dashboard-body">
       <div class="row justify-content-center">
         <div class="col-xl-10">
+
           <!-- Progress Steps -->
-          <div class="d-flex justify-content-between mb-4">
+          <div class="d-flex justify-content-between align-items-center mb-4">
             <div class="d-flex align-items-center gap-2">
-              <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; font-weight: 700;">1</div>
+              <div class="step-circle bg-primary text-white" id="c1">1</div>
               <span class="fw-semibold d-none d-sm-inline">Select Doctor</span>
             </div>
-            <div class="flex-grow-1 d-flex align-items-center px-3">
-              <div class="border-top border-2 w-100"></div>
-            </div>
+            <div class="flex-grow-1 border-top border-2 mx-3"></div>
             <div class="d-flex align-items-center gap-2">
-              <div class="rounded-circle bg-light text-muted d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; font-weight: 700;" id="step2Circle">2</div>
-              <span class="fw-semibold d-none d-sm-inline text-muted" id="step2Text">Select Date & Time</span>
+              <div class="step-circle bg-light text-muted" id="c2">2</div>
+              <span class="fw-semibold d-none d-sm-inline text-muted" id="t2">Select Date</span>
             </div>
-            <div class="flex-grow-1 d-flex align-items-center px-3">
-              <div class="border-top border-2 w-100"></div>
-            </div>
+            <div class="flex-grow-1 border-top border-2 mx-3"></div>
             <div class="d-flex align-items-center gap-2">
-              <div class="rounded-circle bg-light text-muted d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; font-weight: 700;" id="step3Circle">3</div>
-              <span class="fw-semibold d-none d-sm-inline text-muted" id="step3Text">Confirm</span>
+              <div class="step-circle bg-light text-muted" id="c3">3</div>
+              <span class="fw-semibold d-none d-sm-inline text-muted" id="t3">Confirm</span>
             </div>
           </div>
 
-          <!-- Step 1: Select Doctor -->
-          <div id="doctorSelection">
+          <!-- Global alert -->
+          <div id="bookingAlert" class="alert d-none mb-3"></div>
+
+          <!-- ===== STEP 1: Select Doctor ===== -->
+          <div id="step1">
             <div class="content-card mb-4">
-              <div class="card-header">
-                <i class="fa fa-user-doctor me-2 text-primary"></i>Select a Doctor
-              </div>
+              <div class="card-header"><i class="fa fa-user-doctor me-2 text-primary"></i>Select a Doctor</div>
               <div class="p-4">
+                <div id="doctorsList" class="row g-3">
+                  <div class="col-12 text-center text-muted py-5">
+                    <div class="spinner-border text-primary mb-3"></div>
+                    <p>Loading doctors...</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== STEP 2: Select Date ===== -->
+          <div id="step2" class="d-none">
+            <div class="content-card mb-4">
+              <div class="card-header"><i class="fa fa-calendar me-2 text-success"></i>Select Appointment Date</div>
+              <div class="p-4">
+                <!-- Selected doctor summary -->
+                <div class="d-flex align-items-center gap-3 p-3 mb-4 rounded" style="background:#f0f4ff; border:2px solid #667eea;">
+                  <div class="avatar avatar-colors text-white" id="selectedDoctorAvatar" style="width:50px;height:50px;font-size:1rem;">DR</div>
+                  <div>
+                    <div class="fw-bold" id="selectedDoctorName">—</div>
+                    <small class="text-muted" id="selectedDoctorSpec">—</small>
+                  </div>
+                  <button class="btn btn-sm btn-outline-secondary ms-auto" onclick="goToStep(1)">
+                    <i class="fa fa-arrow-left me-1"></i> Change
+                  </button>
+                </div>
                 <div class="row g-3">
-                  <!-- Doctor 1 -->
                   <div class="col-md-6">
-                    <div class="doctor-card content-card p-3" onclick="selectDoctor(this, 'Dr. Sarah Johnson', 'Cardiologist')">
-                      <div class="d-flex gap-3">
-                        <div class="avatar bg-primary" style="width: 60px; height: 60px; font-size: 1.3rem;">SJ</div>
-                        <div class="flex-grow-1">
-                          <h6 class="fw-bold mb-1">Dr. Sarah Johnson</h6>
-                          <p class="text-muted small mb-2"><i class="fa fa-stethoscope me-1"></i>Cardiologist</p>
-                          <div class="d-flex gap-2 align-items-center mb-2">
-                            <div class="text-warning small">
-                              <i class="fa fa-star"></i>
-                              <i class="fa fa-star"></i>
-                              <i class="fa fa-star"></i>
-                              <i class="fa fa-star"></i>
-                              <i class="fa fa-star-half-stroke"></i>
-                            </div>
-                            <small class="text-muted">(4.5)</small>
-                          </div>
-                          <small class="text-muted"><i class="fa fa-clock me-1"></i>15 years experience</small>
-                        </div>
-                      </div>
-                    </div>
+                    <label class="form-label fw-semibold">Appointment Date <span class="text-danger">*</span></label>
+                    <input type="date" class="form-control" id="appointmentDate"/>
+                    <small class="text-muted">Select a date for your appointment</small>
                   </div>
-
-                  <!-- Doctor 2 -->
                   <div class="col-md-6">
-                    <div class="doctor-card content-card p-3" onclick="selectDoctor(this, 'Dr. Michael Chen', 'General Physician')">
-                      <div class="d-flex gap-3">
-                        <div class="avatar bg-success" style="width: 60px; height: 60px; font-size: 1.3rem;">MC</div>
-                        <div class="flex-grow-1">
-                          <h6 class="fw-bold mb-1">Dr. Michael Chen</h6>
-                          <p class="text-muted small mb-2"><i class="fa fa-stethoscope me-1"></i>General Physician</p>
-                          <div class="d-flex gap-2 align-items-center mb-2">
-                            <div class="text-warning small">
-                              <i class="fa fa-star"></i>
-                              <i class="fa fa-star"></i>
-                              <i class="fa fa-star"></i>
-                              <i class="fa fa-star"></i>
-                              <i class="fa fa-star"></i>
-                            </div>
-                            <small class="text-muted">(5.0)</small>
-                          </div>
-                          <small class="text-muted"><i class="fa fa-clock me-1"></i>12 years experience</small>
-                        </div>
-                      </div>
-                    </div>
+                    <label class="form-label fw-semibold">Notes / Reason</label>
+                    <textarea class="form-control" id="appointmentNotes" rows="3" placeholder="Describe your symptoms or reason for visit..."></textarea>
                   </div>
-
-                  <!-- Doctor 3 -->
-                  <div class="col-md-6">
-                    <div class="doctor-card content-card p-3" onclick="selectDoctor(this, 'Dr. Emily Wilson', 'Dermatologist')">
-                      <div class="d-flex gap-3">
-                        <div class="avatar bg-warning" style="width: 60px; height: 60px; font-size: 1.3rem;">EW</div>
-                        <div class="flex-grow-1">
-                          <h6 class="fw-bold mb-1">Dr. Emily Wilson</h6>
-                          <p class="text-muted small mb-2"><i class="fa fa-stethoscope me-1"></i>Dermatologist</p>
-                          <div class="d-flex gap-2 align-items-center mb-2">
-                            <div class="text-warning small">
-                              <i class="fa fa-star"></i>
-                              <i class="fa fa-star"></i>
-                              <i class="fa fa-star"></i>
-                              <i class="fa fa-star"></i>
-                              <i class="fa fa-star-half-stroke"></i>
-                            </div>
-                            <small class="text-muted">(4.7)</small>
-                          </div>
-                          <small class="text-muted"><i class="fa fa-clock me-1"></i>10 years experience</small>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Doctor 4 -->
-                  <div class="col-md-6">
-                    <div class="doctor-card content-card p-3" onclick="selectDoctor(this, 'Dr. James Miller', 'Neurologist')">
-                      <div class="d-flex gap-3">
-                        <div class="avatar bg-info" style="width: 60px; height: 60px; font-size: 1.3rem;">JM</div>
-                        <div class="flex-grow-1">
-                          <h6 class="fw-bold mb-1">Dr. James Miller</h6>
-                          <p class="text-muted small mb-2"><i class="fa fa-stethoscope me-1"></i>Neurologist</p>
-                          <div class="d-flex gap-2 align-items-center mb-2">
-                            <div class="text-warning small">
-                              <i class="fa fa-star"></i>
-                              <i class="fa fa-star"></i>
-                              <i class="fa fa-star"></i>
-                              <i class="fa fa-star"></i>
-                              <i class="far fa-star"></i>
-                            </div>
-                            <small class="text-muted">(4.2)</small>
-                          </div>
-                          <small class="text-muted"><i class="fa fa-clock me-1"></i>18 years experience</small>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                </div>
+                <div class="d-flex justify-content-between mt-4">
+                  <button class="btn btn-outline-secondary" onclick="goToStep(1)">
+                    <i class="fa fa-arrow-left me-2"></i>Back
+                  </button>
+                  <button class="btn btn-primary px-4" onclick="goToStep(3)">
+                    Next <i class="fa fa-arrow-right ms-2"></i>
+                  </button>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Step 2: Select Date & Time (Hidden Initially) -->
-          <div id="dateTimeSelection" style="display: none;">
+          <!-- ===== STEP 3: Confirm ===== -->
+          <div id="step3" class="d-none">
             <div class="content-card mb-4">
-              <div class="card-header">
-                <i class="fa fa-calendar me-2 text-success"></i>Select Date & Time
-              </div>
+              <div class="card-header"><i class="fa fa-clipboard-check me-2 text-warning"></i>Confirm Appointment</div>
               <div class="p-4">
-                <div class="row g-4">
-                  <div class="col-md-6">
-                    <label class="form-label fw-semibold">Select Date</label>
-                    <input type="date" class="form-control" id="appointmentDate" min="" onchange="loadTimeSlots()"/>
-                  </div>
-                  <div class="col-12">
-                    <label class="form-label fw-semibold">Select Time Slot</label>
-                    <div id="timeSlotsContainer" class="row g-2">
-                      <div class="col-12 text-center text-muted py-4">
-                        <i class="fa fa-calendar-day fs-1 mb-2" style="opacity: .3;"></i>
-                        <p>Please select a date first</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Step 3: Reason & Confirm (Hidden Initially) -->
-          <div id="confirmationSection" style="display: none;">
-            <div class="content-card mb-4">
-              <div class="card-header">
-                <i class="fa fa-clipboard-list me-2 text-warning"></i>Reason for Visit
-              </div>
-              <div class="p-4">
-                <div class="mb-4">
-                  <label class="form-label fw-semibold">Describe your symptoms or reason for visit</label>
-                  <textarea class="form-control" id="reasonForVisit" rows="4" placeholder="Please describe your symptoms, concerns, or reason for visiting the doctor..."></textarea>
-                </div>
-
-                <!-- Appointment Summary -->
-                <div class="p-4 rounded" style="background: #f8fafc; border: 2px dashed #cbd5e1;">
-                  <h6 class="fw-bold mb-3"><i class="fa fa-clipboard-check me-2 text-primary"></i>Appointment Summary</h6>
+                <div class="p-4 rounded mb-4" style="background:#f8fafc; border: 2px dashed #cbd5e1;">
+                  <h6 class="fw-bold mb-3"><i class="fa fa-info-circle me-2 text-primary"></i>Appointment Summary</h6>
                   <div class="row g-3">
                     <div class="col-md-6">
                       <small class="text-muted d-block mb-1">Doctor</small>
-                      <p class="mb-0 fw-semibold" id="summaryDoctor">-</p>
+                      <p class="mb-0 fw-semibold" id="sumDoctor">—</p>
                     </div>
                     <div class="col-md-6">
                       <small class="text-muted d-block mb-1">Specialization</small>
-                      <p class="mb-0 fw-semibold" id="summarySpecialization">-</p>
+                      <p class="mb-0 fw-semibold" id="sumSpec">—</p>
                     </div>
                     <div class="col-md-6">
                       <small class="text-muted d-block mb-1">Date</small>
-                      <p class="mb-0 fw-semibold" id="summaryDate">-</p>
+                      <p class="mb-0 fw-semibold" id="sumDate">—</p>
                     </div>
                     <div class="col-md-6">
-                      <small class="text-muted d-block mb-1">Time</small>
-                      <p class="mb-0 fw-semibold" id="summaryTime">-</p>
+                      <small class="text-muted d-block mb-1">Status</small>
+                      <p class="mb-0"><span class="badge-status status-pending">Scheduled</span></p>
+                    </div>
+                    <div class="col-12">
+                      <small class="text-muted d-block mb-1">Notes</small>
+                      <p class="mb-0 fw-semibold" id="sumNotes">—</p>
                     </div>
                   </div>
                 </div>
+                <div class="d-flex justify-content-between">
+                  <button class="btn btn-outline-secondary px-4" onclick="goToStep(2)">
+                    <i class="fa fa-arrow-left me-2"></i>Back
+                  </button>
+                  <button class="btn btn-success px-5" id="confirmBtn" onclick="confirmBooking()">
+                    <i class="fa fa-check me-2"></i>Confirm Booking
+                  </button>
+                </div>
               </div>
             </div>
-
-            <div class="d-flex gap-3 justify-content-end">
-              <button class="btn btn-outline-secondary px-4" onclick="goBack()">
-                <i class="fa fa-arrow-left me-2"></i>Back
-              </button>
-              <button class="btn btn-primary px-5" onclick="confirmBooking()">
-                <i class="fa fa-check me-2"></i>Confirm Booking
-              </button>
-            </div>
           </div>
+
         </div>
       </div>
     </div>
@@ -264,110 +176,193 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  let selectedDoctor = null;
-  let selectedSpecialization = null;
-  let selectedDate = null;
-  let selectedTime = null;
+  const API   = 'http://127.0.0.1:8000';
+  const token = localStorage.getItem('token');
+  if (!token) window.location.href = 'patient-login.html';
 
-  // Set minimum date to today
-  document.addEventListener('DOMContentLoaded', function() {
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('appointmentDate').min = today;
-  });
+  const email = localStorage.getItem('email') || 'Patient';
+  document.getElementById('userEmail').textContent = email;
+  document.getElementById('userAvatar').textContent = email.substring(0,2).toUpperCase();
 
-  function selectDoctor(element, doctor, specialization) {
-    document.querySelectorAll('.doctor-card').forEach(card => card.classList.remove('selected'));
-    element.classList.add('selected');
-    selectedDoctor = doctor;
-    selectedSpecialization = specialization;
+  // Set min date to today
+  document.getElementById('appointmentDate').min = new Date().toISOString().split('T')[0];
 
-    // Show date & time selection
-    setTimeout(() => {
-      document.getElementById('doctorSelection').style.display = 'none';
-      document.getElementById('dateTimeSelection').style.display = 'block';
-      document.getElementById('step2Circle').classList.remove('bg-light', 'text-muted');
-      document.getElementById('step2Circle').classList.add('bg-primary', 'text-white');
-      document.getElementById('step2Text').classList.remove('text-muted');
-    }, 300);
+  let selectedDoctor = null; // { id, name, specialization }
+  let patientRecord  = null; // fetched patient record
+
+  function authHdr() {
+    return { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
   }
 
-  function loadTimeSlots() {
-    selectedDate = document.getElementById('appointmentDate').value;
-    if (!selectedDate) return;
+  function doLogout() { localStorage.clear(); window.location.href = 'patient-login.html'; }
 
-    const timeSlots = [
-      { time: '09:00 AM', available: true },
-      { time: '09:30 AM', available: false },
-      { time: '10:00 AM', available: true },
-      { time: '10:30 AM', available: true },
-      { time: '11:00 AM', available: false },
-      { time: '11:30 AM', available: true },
-      { time: '02:00 PM', available: true },
-      { time: '02:30 PM', available: true },
-      { time: '03:00 PM', available: false },
-      { time: '03:30 PM', available: true },
-      { time: '04:00 PM', available: true },
-      { time: '04:30 PM', available: true }
-    ];
-
-    const container = document.getElementById('timeSlotsContainer');
-    container.innerHTML = timeSlots.map(slot => `
-      <div class="col-lg-2 col-md-3 col-sm-4 col-6">
-        <div class="time-slot ${slot.available ? '' : 'unavailable'}" 
-             onclick="${slot.available ? `selectTimeSlot(this, '${slot.time}')` : ''}"
-             ${!slot.available ? 'style="pointer-events: none;"' : ''}>
-          <i class="fa fa-clock me-1"></i>${slot.time}
-        </div>
-      </div>
-    `).join('');
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebarOverlay').classList.toggle('open');
   }
 
-  function selectTimeSlot(element, time) {
-    document.querySelectorAll('.time-slot').forEach(slot => slot.classList.remove('selected'));
-    element.classList.add('selected');
-    selectedTime = time;
+  // ---- Load doctors from API ----
+  async function loadDoctors() {
+    try {
+      const res  = await fetch(`${API}/doctors`, { headers: authHdr() });
+      if (res.status === 401) { doLogout(); return; }
+      const data = await res.json();
+      const container = document.getElementById('doctorsList');
 
-    // Show confirmation section
-    setTimeout(() => {
-      document.getElementById('dateTimeSelection').style.display = 'none';
-      document.getElementById('confirmationSection').style.display = 'block';
-      document.getElementById('step3Circle').classList.remove('bg-light', 'text-muted');
-      document.getElementById('step3Circle').classList.add('bg-primary', 'text-white');
-      document.getElementById('step3Text').classList.remove('text-muted');
+      if (!data.length) {
+        container.innerHTML = `
+          <div class="col-12 text-center py-5">
+            <i class="fa fa-user-doctor text-muted mb-3" style="font-size:3rem; opacity:.3;"></i>
+            <p class="text-muted">No doctors available. Please contact admin.</p>
+          </div>`;
+        return;
+      }
 
-      // Update summary
-      document.getElementById('summaryDoctor').textContent = selectedDoctor;
-      document.getElementById('summarySpecialization').textContent = selectedSpecialization;
-      document.getElementById('summaryDate').textContent = new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-      document.getElementById('summaryTime').textContent = selectedTime;
-    }, 300);
+      const colors = ['bg-primary','bg-success','bg-warning','bg-info','bg-danger','bg-purple-soft'];
+      container.innerHTML = data.map((d, i) => `
+        <div class="col-md-6">
+          <div class="doctor-card p-3" onclick="selectDoctor(${d.id}, '${d.name.replace(/'/g,"\\'")}', '${d.specialization.replace(/'/g,"\\'")}', this)">
+            <div class="d-flex gap-3 align-items-center">
+              <div class="avatar ${colors[i % colors.length]} text-white" style="width:55px;height:55px;font-size:1.1rem;flex-shrink:0;">
+                ${d.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase()}
+              </div>
+              <div class="flex-grow-1">
+                <h6 class="fw-bold mb-1">${d.name}</h6>
+                <p class="text-muted small mb-1"><i class="fa fa-stethoscope me-1"></i>${d.specialization}</p>
+                ${d.available_days ? `<small class="text-muted"><i class="fa fa-calendar me-1"></i>${d.available_days}</small>` : ''}
+                ${d.phone ? `<br><small class="text-muted"><i class="fa fa-phone me-1"></i>${d.phone}</small>` : ''}
+              </div>
+              <i class="fa fa-circle-check text-primary fs-4 d-none check-icon"></i>
+            </div>
+          </div>
+        </div>`).join('');
+    } catch (e) {
+      document.getElementById('doctorsList').innerHTML = '<div class="col-12 text-center text-danger py-4">Failed to load doctors.</div>';
+    }
   }
 
-  function goBack() {
-    document.getElementById('confirmationSection').style.display = 'none';
-    document.getElementById('dateTimeSelection').style.display = 'block';
+  function selectDoctor(id, name, spec, el) {
+    document.querySelectorAll('.doctor-card').forEach(c => {
+      c.classList.remove('selected');
+      c.querySelector('.check-icon').classList.add('d-none');
+    });
+    el.classList.add('selected');
+    el.querySelector('.check-icon').classList.remove('d-none');
+    selectedDoctor = { id, name, spec };
+    setTimeout(() => goToStep(2), 300);
   }
 
-  function confirmBooking() {
-    const reason = document.getElementById('reasonForVisit').value;
-    
-    if (!reason.trim()) {
-      alert('Please provide a reason for your visit');
+  // ---- Fetch patient record for current logged-in user ----
+  async function getPatientRecord() {
+    const res  = await fetch(`${API}/patients`, { headers: authHdr() });
+    const data = await res.json();
+    // Match by email stored in localStorage
+    const match = data.find(p => p.email && p.email.toLowerCase() === email.toLowerCase());
+    return match || null;
+  }
+
+  // ---- Step navigation ----
+  function goToStep(step) {
+    if (step === 2) {
+      if (!selectedDoctor) {
+        showAlert('Please select a doctor first.', 'danger');
+        return;
+      }
+      document.getElementById('selectedDoctorName').textContent = selectedDoctor.name;
+      document.getElementById('selectedDoctorSpec').textContent = selectedDoctor.spec;
+      document.getElementById('selectedDoctorAvatar').textContent =
+        selectedDoctor.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+    }
+
+    if (step === 3) {
+      const date  = document.getElementById('appointmentDate').value;
+      const notes = document.getElementById('appointmentNotes').value.trim();
+      if (!date) { showAlert('Please select an appointment date.', 'danger'); return; }
+      // Populate summary
+      document.getElementById('sumDoctor').textContent = selectedDoctor.name;
+      document.getElementById('sumSpec').textContent   = selectedDoctor.spec;
+      document.getElementById('sumDate').textContent   = new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+      document.getElementById('sumNotes').textContent  = notes || '—';
+    }
+
+    document.getElementById('step1').classList.add('d-none');
+    document.getElementById('step2').classList.add('d-none');
+    document.getElementById('step3').classList.add('d-none');
+    document.getElementById('step' + step).classList.remove('d-none');
+    hideAlert();
+
+    // Update step circles
+    [1,2,3].forEach(n => {
+      const c = document.getElementById('c' + n);
+      const t = document.getElementById('t' + n);
+      if (n <= step) {
+        c.className = 'step-circle bg-primary text-white';
+        if (t) t.classList.remove('text-muted');
+      } else {
+        c.className = 'step-circle bg-light text-muted';
+        if (t) t.classList.add('text-muted');
+      }
+    });
+  }
+
+  // ---- Confirm booking ----
+  async function confirmBooking() {
+    const date  = document.getElementById('appointmentDate').value;
+    const notes = document.getElementById('appointmentNotes').value.trim();
+    const btn   = document.getElementById('confirmBtn');
+
+    // Get patient record
+    if (!patientRecord) patientRecord = await getPatientRecord();
+
+    if (!patientRecord) {
+      showAlert('Your patient profile was not found. Please contact admin to register you as a patient.', 'danger');
       return;
     }
 
-    const bookingData = {
-      doctor: selectedDoctor,
-      specialization: selectedSpecialization,
-      date: selectedDate,
-      time: selectedTime,
-      reason: reason
-    };
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Booking...';
 
-    console.log('Booking Data:', bookingData);
-    alert('Appointment booked successfully! You will receive a confirmation email shortly.');
-    window.location.href = 'patient-dashboard.html';
+    try {
+      const res = await fetch(`${API}/appointments`, {
+        method: 'POST',
+        headers: authHdr(),
+        body: JSON.stringify({
+          patient_id:       patientRecord.id,
+          doctor_id:        selectedDoctor.id,
+          appointment_date: date,
+          status:           'scheduled',
+          notes:            notes || null
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        showAlert(data.detail || 'Booking failed. Try again.', 'danger');
+        return;
+      }
+      showAlert('Appointment booked successfully! Redirecting...', 'success');
+      setTimeout(() => window.location.href = 'patient-appointments.html', 2000);
+    } catch {
+      showAlert('Server error. Please try again.', 'danger');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa fa-check me-2"></i>Confirm Booking';
+    }
   }
+
+  function showAlert(msg, type) {
+    const a = document.getElementById('bookingAlert');
+    a.className = `alert alert-${type}`;
+    a.textContent = msg;
+    a.classList.remove('d-none');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function hideAlert() {
+    document.getElementById('bookingAlert').classList.add('d-none');
+  }
+
+  // Initial load
+  loadDoctors();
 </script>
 </body>
 </html>
