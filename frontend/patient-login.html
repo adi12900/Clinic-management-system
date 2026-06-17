@@ -69,7 +69,7 @@
       
       <div class="divider"><span>OR</span></div>
       
-      <a href="#" class="btn btn-outline-primary w-100 py-2 mb-3" onclick="registerPatient(event)">
+      <a href="patient-register.html" class="btn btn-outline-primary w-100 py-2 mb-3">
         <i class="fa fa-user-plus me-2"></i>Register as New Patient
       </a>
       
@@ -92,11 +92,6 @@
     const ico = document.getElementById('eyeIcon');
     inp.type = inp.type === 'password' ? 'text' : 'password';
     ico.className = inp.type === 'password' ? 'fa fa-eye' : 'fa fa-eye-slash';
-  }
-
-  function registerPatient(e) {
-    e.preventDefault();
-    alert('Patient registration feature coming soon!');
   }
 
   document.getElementById('patientLoginForm').addEventListener('submit', function(e) {

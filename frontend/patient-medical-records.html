@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Medical Records – ClinicCare</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+  <link href="assets/css/style.css" rel="stylesheet"/>
+  <style>
+    .record-card { cursor: pointer; transition: all .2s; }
+    .record-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,.12); }
+    .prescription-item { background: #f8fafc; border-left: 4px solid #667eea; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; }
+    .diagnosis-badge { display: inline-block; background: #fef3c7; color: #92400e; padding: .25rem .75rem; border-radius: 50px; font-size: .75rem; font-weight: 600; margin-right: .5rem; margin-bottom: .5rem; }
+  </style>
+</head>
+<body>
+
+<div class="dashboard-wrapper">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <i class="fa-solid fa-staff-snake"></i>
+      <span>ClinicCare</span>
+    </div>
+    <ul class="sidebar-nav">
+      <li class="nav-section">MAIN MENU</li>
+      <li><a href="patient-dashboard.html"><i class="fa fa-th-large"></i> Dashboard</a></li>
+      <li><a href="patient-book-appointment.html"><i class="fa fa-calendar-plus"></i> Book Appointment</a></li>
+      <li><a href="patient-appointments.html"><i class="fa fa-calendar-check"></i> My Appointments</a></li>
+      <li><a href="patient-medical-records.html" class="active"><i class="fa fa-file-medical"></i> Medical Records</a></li>
+      <li class="nav-section">ACCOUNT</li>
+      <li><a href="patient-profile.html"><i class="fa fa-user-circle"></i> My Profile</a></li>
+      <li><a href="#"><i class="fa fa-cog"></i> Settings</a></li>
+      <li class="logout-link"><a href="patient-login.html"><i class="fa fa-right-from-bracket"></i> Logout</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Topbar -->
+    <div class="topbar">
+      <h1 class="page-title">Medical Records</h1>
+      <div class="user-info">
+        <div class="avatar">JD</div>
+        <span class="fw-semibold">John Doe</span>
+      </div>
+    </div>
+
+    <!-- Dashboard Body -->
+    <div class="dashboard-body">
+      <!-- Overview Cards -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-3 col-sm-6">
+          <div class="kpi-card">
+            <div class="kpi-icon bg-primary-soft text-primary">
+              <i class="fa fa-file-medical"></i>
+            </div>
+            <div>
+              <div class="kpi-num text-primary">12</div>
+              <div class="kpi-label">Total Records</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <div class="kpi-card">
+            <div class="kpi-icon bg-success-soft text-success">
+              <i class="fa fa-pills"></i>
+            </div>
+            <div>
+              <div class="kpi-num text-success">8</div>
+              <div class="kpi-label">Prescriptions</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <div class="kpi-card">
+            <div class="kpi-icon bg-warning-soft text-warning">
+              <i class="fa fa-notes-medical"></i>
+            </div>
+            <div>
+              <div class="kpi-num text-warning">5</div>
+              <div class="kpi-label">Diagnoses</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <div class="kpi-card">
+            <div class="kpi-icon bg-info-soft text-info">
+              <i class="fa fa-flask"></i>
+            </div>
+            <div>
+              <div class="kpi-num text-info">3</div>
+              <div class="kpi-label">Lab Reports</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Medical Records List -->
+      <div class="row g-4">
+        <!-- Record 1 -->
+        <div class="col-lg-4 col-md-6">
+          <div class="record-card content-card p-0" onclick="viewRecord(1)">
+            <div class="p-3" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff;">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <small class="text-white-50 d-block mb-1">Visit Date</small>
+                  <h6 class="fw-bold mb-0">Dec 15, 2024</h6>
+                </div>
+                <span class="badge bg-white text-primary">Recent</span>
+              </div>
+            </div>
+            <div class="p-3">
+              <div class="d-flex gap-2 mb-3">
+                <div class="avatar bg-primary" style="width: 48px; height: 48px;">SJ</div>
+                <div>
+                  <h6 class="fw-bold mb-0">Dr. Sarah Johnson</h6>
+                  <small class="text-muted">Cardiologist</small>
+                </div>
+              </div>
+              <div class="mb-2">
+                <small class="text-muted d-block mb-1">Diagnosis</small>
+                <span class="diagnosis-badge">Hypertension</span>
+              </div>
+              <button class="btn btn-outline-primary btn-sm w-100 mt-2">
+                <i class="fa fa-eye me-2"></i>View Full Record
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Record 2 -->
+        <div class="col-lg-4 col-md-6">
+          <div class="record-card content-card p-0" onclick="viewRecord(2)">
+            <div class="p-3" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff;">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <small class="text-white-50 d-block mb-1">Visit Date</small>
+                  <h6 class="fw-bold mb-0">Dec 10, 2024</h6>
+                </div>
+              </div>
+            </div>
+            <div class="p-3">
+              <div class="d-flex gap-2 mb-3">
+                <div class="avatar bg-success" style="width: 48px; height: 48px;">MC</div>
+                <div>
+                  <h6 class="fw-bold mb-0">Dr. Michael Chen</h6>
+                  <small class="text-muted">General Physician</small>
+                </div>
+              </div>
+              <div class="mb-2">
+                <small class="text-muted d-block mb-1">Diagnosis</small>
+                <span class="diagnosis-badge">Common Cold</span>
+              </div>
+              <button class="btn btn-outline-primary btn-sm w-100 mt-2">
+                <i class="fa fa-eye me-2"></i>View Full Record
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Record 3 -->
+        <div class="col-lg-4 col-md-6">
+          <div class="record-card content-card p-0" onclick="viewRecord(3)">
+            <div class="p-3" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #fff;">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <small class="text-white-50 d-block mb-1">Visit Date</small>
+                  <h6 class="fw-bold mb-0">Dec 5, 2024</h6>
+                </div>
+              </div>
+            </div>
+            <div class="p-3">
+              <div class="d-flex gap-2 mb-3">
+                <div class="avatar bg-warning" style="width: 48px; height: 48px;">EW</div>
+                <div>
+                  <h6 class="fw-bold mb-0">Dr. Emily Wilson</h6>
+                  <small class="text-muted">Dermatologist</small>
+                </div>
+              </div>
+              <div class="mb-2">
+                <small class="text-muted d-block mb-1">Diagnosis</small>
+                <span class="diagnosis-badge">Skin Allergy</span>
+              </div>
+              <button class="btn btn-outline-primary btn-sm w-100 mt-2">
+                <i class="fa fa-eye me-2"></i>View Full Record
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Medical Record Detail Modal -->
+<div class="modal fade" id="recordModal" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff;">
+        <div>
+          <h5 class="modal-title fw-bold mb-1">Medical Record Details</h5>
+          <small class="text-white-50">Visit Date: December 15, 2024</small>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <!-- Doctor Info -->
+        <div class="content-card mb-4 p-3" style="background: #f8fafc;">
+          <div class="d-flex gap-3 align-items-center">
+            <div class="avatar bg-primary" style="width: 60px; height: 60px; font-size: 1.3rem;">SJ</div>
+            <div>
+              <h6 class="fw-bold mb-1">Dr. Sarah Johnson</h6>
+              <p class="text-muted small mb-1"><i class="fa fa-stethoscope me-1"></i>Cardiologist</p>
+              <p class="text-muted small mb-0"><i class="fa fa-hospital me-1"></i>ClinicCare Medical Center</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-4">
+          <!-- Diagnosis -->
+          <div class="col-lg-6">
+            <div class="content-card">
+              <div class="card-header bg-warning-soft">
+                <i class="fa fa-notes-medical me-2 text-warning"></i>Diagnosis
+              </div>
+              <div class="p-3">
+                <div class="mb-3">
+                  <span class="diagnosis-badge">Hypertension</span>
+                  <span class="diagnosis-badge">Stage 1</span>
+                </div>
+                <p class="text-muted small mb-2"><strong>ICD-10 Code:</strong> I10</p>
+                <p class="text-muted small mb-0"><strong>Description:</strong> Essential (primary) hypertension. Blood pressure readings consistently above 130/80 mmHg.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Vital Signs -->
+          <div class="col-lg-6">
+            <div class="content-card">
+              <div class="card-header bg-info-soft">
+                <i class="fa fa-heartbeat me-2 text-info"></i>Vital Signs
+              </div>
+              <div class="p-3">
+                <div class="row g-2">
+                  <div class="col-6">
+                    <small class="text-muted d-block">Blood Pressure</small>
+                    <p class="fw-semibold mb-0">135/88 mmHg</p>
+                  </div>
+                  <div class="col-6">
+                    <small class="text-muted d-block">Heart Rate</small>
+                    <p class="fw-semibold mb-0">78 bpm</p>
+                  </div>
+                  <div class="col-6">
+                    <small class="text-muted d-block">Temperature</small>
+                    <p class="fw-semibold mb-0">98.6°F</p>
+                  </div>
+                  <div class="col-6">
+                    <small class="text-muted d-block">Weight</small>
+                    <p class="fw-semibold mb-0">75 kg</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Prescriptions -->
+          <div class="col-12">
+            <div class="content-card">
+              <div class="card-header bg-success-soft">
+                <i class="fa fa-pills me-2 text-success"></i>Prescriptions
+              </div>
+              <div class="p-3">
+                <!-- Prescription 1 -->
+                <div class="prescription-item">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                      <h6 class="fw-bold mb-1">Lisinopril 10mg</h6>
+                      <p class="text-muted small mb-0">ACE Inhibitor - Antihypertensive</p>
+                    </div>
+                    <span class="badge bg-success-soft text-success">Active</span>
+                  </div>
+                  <div class="row g-2 mt-2">
+                    <div class="col-md-3 col-6">
+                      <small class="text-muted d-block">Dosage</small>
+                      <p class="fw-semibold small mb-0">1 tablet daily</p>
+                    </div>
+                    <div class="col-md-3 col-6">
+                      <small class="text-muted d-block">Duration</small>
+                      <p class="fw-semibold small mb-0">30 days</p>
+                    </div>
+                    <div class="col-md-3 col-6">
+                      <small class="text-muted d-block">Timing</small>
+                      <p class="fw-semibold small mb-0">Morning</p>
+                    </div>
+                    <div class="col-md-3 col-6">
+                      <small class="text-muted d-block">With</small>
+                      <p class="fw-semibold small mb-0">After food</p>
+                    </div>
+                  </div>
+                  <div class="mt-2">
+                    <small class="text-muted"><strong>Instructions:</strong> Take one tablet in the morning with breakfast. Do not skip doses.</small>
+                  </div>
+                </div>
+
+                <!-- Prescription 2 -->
+                <div class="prescription-item">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                      <h6 class="fw-bold mb-1">Aspirin 75mg</h6>
+                      <p class="text-muted small mb-0">Antiplatelet - Cardiovascular Protection</p>
+                    </div>
+                    <span class="badge bg-success-soft text-success">Active</span>
+                  </div>
+                  <div class="row g-2 mt-2">
+                    <div class="col-md-3 col-6">
+                      <small class="text-muted d-block">Dosage</small>
+                      <p class="fw-semibold small mb-0">1 tablet daily</p>
+                    </div>
+                    <div class="col-md-3 col-6">
+                      <small class="text-muted d-block">Duration</small>
+                      <p class="fw-semibold small mb-0">30 days</p>
+                    </div>
+                    <div class="col-md-3 col-6">
+                      <small class="text-muted d-block">Timing</small>
+                      <p class="fw-semibold small mb-0">Night</p>
+                    </div>
+                    <div class="col-md-3 col-6">
+                      <small class="text-muted d-block">With</small>
+                      <p class="fw-semibold small mb-0">After food</p>
+                    </div>
+                  </div>
+                  <div class="mt-2">
+                    <small class="text-muted"><strong>Instructions:</strong> Take one tablet at bedtime with dinner. Continue as directed.</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Doctor Notes -->
+          <div class="col-12">
+            <div class="content-card">
+              <div class="card-header bg-primary-soft">
+                <i class="fa fa-clipboard me-2 text-primary"></i>Doctor's Notes
+              </div>
+              <div class="p-3">
+                <div class="mb-3">
+                  <h6 class="fw-semibold mb-2">Chief Complaint:</h6>
+                  <p class="text-muted">Patient reports persistent headaches and occasional dizziness over the past 2 weeks. No chest pain or shortness of breath.</p>
+                </div>
+                <div class="mb-3">
+                  <h6 class="fw-semibold mb-2">Physical Examination:</h6>
+                  <p class="text-muted">Blood pressure elevated at 135/88 mmHg. Heart sounds normal, no murmurs. Lung fields clear. No pedal edema observed.</p>
+                </div>
+                <div class="mb-3">
+                  <h6 class="fw-semibold mb-2">Assessment:</h6>
+                  <p class="text-muted">Patient diagnosed with Stage 1 Hypertension (I10). Lifestyle modifications discussed including dietary changes (low sodium), regular exercise, and stress management.</p>
+                </div>
+                <div class="mb-3">
+                  <h6 class="fw-semibold mb-2">Treatment Plan:</h6>
+                  <ul class="text-muted">
+                    <li>Started on Lisinopril 10mg once daily</li>
+                    <li>Low-dose Aspirin for cardiovascular protection</li>
+                    <li>Advised to monitor blood pressure at home twice daily</li>
+                    <li>DASH diet recommended</li>
+                    <li>Regular exercise - 30 minutes daily walking</li>
+                  </ul>
+                </div>
+                <div>
+                  <h6 class="fw-semibold mb-2">Follow-up:</h6>
+                  <p class="text-muted mb-0">Patient advised to return for follow-up in 2 weeks for blood pressure check and medication review. Urged to seek immediate care if experiencing chest pain, severe headache, or vision changes.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Lab Tests -->
+          <div class="col-12">
+            <div class="content-card">
+              <div class="card-header bg-purple-soft">
+                <i class="fa fa-flask me-2 text-purple"></i>Lab Tests & Reports
+              </div>
+              <div class="p-3">
+                <div class="table-responsive">
+                  <table class="table table-sm">
+                    <thead>
+                      <tr>
+                        <th>Test Name</th>
+                        <th>Result</th>
+                        <th>Normal Range</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Cholesterol (Total)</td>
+                        <td class="fw-semibold">195 mg/dL</td>
+                        <td>&lt;200 mg/dL</td>
+                        <td><span class="badge bg-success-soft text-success">Normal</span></td>
+                      </tr>
+                      <tr>
+                        <td>Blood Glucose (Fasting)</td>
+                        <td class="fw-semibold">92 mg/dL</td>
+                        <td>70-100 mg/dL</td>
+                        <td><span class="badge bg-success-soft text-success">Normal</span></td>
+                      </tr>
+                      <tr>
+                        <td>Creatinine</td>
+                        <td class="fw-semibold">1.0 mg/dL</td>
+                        <td>0.7-1.3 mg/dL</td>
+                        <td><span class="badge bg-success-soft text-success">Normal</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" onclick="downloadRecord()">
+          <i class="fa fa-download me-2"></i>Download PDF
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function viewRecord(recordId) {
+    const modal = new bootstrap.Modal(document.getElementById('recordModal'));
+    modal.show();
+  }
+
+  function downloadRecord() {
+    alert('Downloading medical record as PDF...');
+  }
+</script>
+</body>
+</html>
