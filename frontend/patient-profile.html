@@ -4,313 +4,299 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>My Profile – ClinicCare</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
-  <link href="assets/css/style.css" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0A0F1E; --sidebar-bg: #0D1426;
+      --accent: #00D4AA; --accent2: #00b38f;
+      --violet: #6C63FF; --gold: #F5A623;
+      --card-bg: rgba(255,255,255,0.04); --border: rgba(255,255,255,0.08);
+      --text: #FFFFFF; --muted: rgba(255,255,255,0.55);
+    }
+    html, body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+    ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 4px; }
+
+    .layout { display: flex; min-height: 100vh; }
+    .sidebar { width: 240px; flex-shrink: 0; background: var(--sidebar-bg); border-right: 1px solid rgba(255,255,255,0.06); display: flex; flex-direction: column; padding: 28px 0; position: fixed; top: 0; left: 0; bottom: 0; z-index: 100; }
+    .sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 0 24px 28px; font-size: 20px; font-weight: 800; color: var(--text); }
+    .logo-icon { width: 36px; height: 36px; background: var(--accent); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; box-shadow: 0 0 18px rgba(0,212,170,0.55); color: #0A0F1E; }
+    .nav-section { font-size: 10px; font-weight: 600; letter-spacing: 1.2px; color: rgba(255,255,255,0.25); padding: 18px 24px 6px; text-transform: uppercase; }
+    .sidebar-nav { list-style: none; flex: 1; }
+    .sidebar-nav a { display: flex; align-items: center; gap: 11px; padding: 10px 16px; margin: 2px 12px; border-radius: 10px; color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 500; transition: all 0.2s ease; position: relative; }
+    .sidebar-nav a i { width: 18px; text-align: center; font-size: 14px; }
+    .sidebar-nav a:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+    .sidebar-nav a.active { background: rgba(0,212,170,0.12); color: var(--text); font-weight: 600; }
+    .sidebar-nav a.active::before { content: ''; position: absolute; left: -12px; top: 50%; transform: translateY(-50%); width: 3px; height: 22px; background: var(--accent); border-radius: 0 3px 3px 0; }
+    .logout-link a { color: rgba(255,100,100,0.7); } .logout-link a:hover { background: rgba(255,80,80,0.08); color: #ff6b6b; }
+
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding: 20px 36px; border-bottom: 1px solid var(--border); background: rgba(10,15,30,0.8); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 50; }
+    .topbar h1 { font-size: 22px; font-weight: 700; }
+    .user-info { display: flex; align-items: center; gap: 12px; }
+    .topbar-avatar { width: 38px; height: 38px; background: linear-gradient(135deg, var(--accent), #008c72); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #0A0F1E; box-shadow: 0 0 14px rgba(0,212,170,0.4); }
+    .user-email { font-size: 13px; color: var(--muted); }
+    .body { padding: 32px 36px; max-width: 900px; display: flex; flex-direction: column; gap: 24px; }
+
+    /* Alert */
+    .alert { padding: 12px 18px; border-radius: 10px; font-size: 14px; font-weight: 500; display: none; }
+    .alert.show { display: block; }
+    .alert-success { background: rgba(0,212,170,0.12); color: var(--accent); border: 1px solid rgba(0,212,170,0.3); }
+    .alert-danger  { background: rgba(255,80,80,0.1);  color: #ff6b6b;   border: 1px solid rgba(255,80,80,0.25); }
+
+    /* Profile banner */
+    .profile-card { background: var(--card-bg); border: 1px solid var(--border); backdrop-filter: blur(16px); border-radius: 16px; overflow: hidden; animation: fadeUp 0.3s ease both; }
+    .profile-banner { background: linear-gradient(135deg, #00D4AA 0%, #007a63 60%, #0A0F1E 100%); padding: 36px 32px; display: flex; align-items: center; gap: 24px; position: relative; overflow: hidden; }
+    .profile-banner::after { content: ''; position: absolute; right: -40px; top: -40px; width: 160px; height: 160px; background: rgba(255,255,255,0.06); border-radius: 50%; }
+    .profile-avatar { width: 72px; height: 72px; background: rgba(255,255,255,0.2); border: 3px solid rgba(255,255,255,0.35); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; }
+    .profile-info .name { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
+    .profile-info .pid  { font-size: 13px; color: rgba(255,255,255,0.65); margin-bottom: 12px; }
+    .btn-edit { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 8px 18px; border-radius: 9px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif; }
+    .btn-edit:hover { background: rgba(255,255,255,0.22); }
+
+    /* Info grid */
+    .info-section { padding: 28px 32px; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .info-item { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+    .info-item.full { grid-column: 1/-1; }
+    .info-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.7px; color: var(--muted); margin-bottom: 5px; }
+    .info-value { font-size: 14px; font-weight: 600; color: var(--text); }
+
+    /* Edit form */
+    .edit-section { padding: 28px 32px; display: none; }
+    .edit-section.show { display: block; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1/-1; }
+    label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    input, select, textarea {
+      background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text);
+      border-radius: 10px; padding: 10px 14px; font-family: 'Inter', sans-serif; font-size: 14px;
+      transition: border-color 0.2s; width: 100%; outline: none;
+    }
+    input:focus, select:focus, textarea:focus { border-color: rgba(0,212,170,0.5); box-shadow: 0 0 0 3px rgba(0,212,170,0.08); }
+    select option { background: #0D1426; color: var(--text); }
+    textarea { resize: vertical; min-height: 80px; }
+    .form-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px; }
+    .btn-ghost { background: var(--card-bg); border: 1px solid var(--border); color: var(--muted); padding: 10px 22px; border-radius: 9px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif; }
+    .btn-ghost:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+    .btn-save { display: inline-flex; align-items: center; gap: 8px; background: var(--accent); color: #0A0F1E; border: none; padding: 10px 24px; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif; }
+    .btn-save:hover { background: var(--accent2); }
+    .btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Stat cards */
+    .stats-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; animation: fadeUp 0.35s ease 0.1s both; }
+    .stat-card { background: var(--card-bg); border: 1px solid var(--border); backdrop-filter: blur(16px); border-radius: 14px; padding: 20px; display: flex; align-items: center; gap: 14px; transition: transform 0.2s, border-color 0.2s; }
+    .stat-card:hover { transform: scale(1.03); }
+    .stat-card.teal:hover { border-color: rgba(0,212,170,0.4); }
+    .stat-card.gold:hover { border-color: rgba(245,166,35,0.4); }
+    .stat-card.violet:hover { border-color: rgba(108,99,255,0.4); }
+    .stat-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+    .stat-icon.teal   { background: rgba(0,212,170,0.15);  color: var(--accent); }
+    .stat-icon.gold   { background: rgba(245,166,35,0.15); color: var(--gold); }
+    .stat-icon.violet { background: rgba(108,99,255,0.15); color: var(--violet); }
+    .stat-num  { font-size: 28px; font-weight: 800; line-height: 1; }
+    .stat-num.teal  { color: var(--accent); } .stat-num.gold  { color: var(--gold); } .stat-num.violet { color: var(--violet); }
+    .stat-label { font-size: 11px; font-weight: 600; letter-spacing: 0.7px; text-transform: uppercase; color: var(--muted); margin-top: 3px; }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
 </head>
 <body>
-
-<div class="dashboard-wrapper">
-  <!-- Sidebar -->
-  <aside class="sidebar">
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
-      <i class="fa-solid fa-staff-snake"></i>
-      <span>ClinicCare</span>
+      <div class="logo-icon"><i class="fa fa-plus"></i></div>
+      ClinicCare
     </div>
     <ul class="sidebar-nav">
-      <li class="nav-section">MAIN MENU</li>
+      <li class="nav-section">Main Menu</li>
       <li><a href="patient-dashboard.html"><i class="fa fa-th-large"></i> Dashboard</a></li>
       <li><a href="patient-book-appointment.html"><i class="fa fa-calendar-plus"></i> Book Appointment</a></li>
       <li><a href="patient-appointments.html"><i class="fa fa-calendar-check"></i> My Appointments</a></li>
       <li><a href="patient-medical-records.html"><i class="fa fa-file-medical"></i> Medical Records</a></li>
-      <li class="nav-section">ACCOUNT</li>
+      <li class="nav-section">Account</li>
       <li><a href="patient-profile.html" class="active"><i class="fa fa-user-circle"></i> My Profile</a></li>
-      <li><a href="#"><i class="fa fa-cog"></i> Settings</a></li>
-      <li class="logout-link"><a href="patient-login.html"><i class="fa fa-right-from-bracket"></i> Logout</a></li>
+      <li class="logout-link"><a href="#" onclick="doLogout()"><i class="fa fa-right-from-bracket"></i> Logout</a></li>
     </ul>
   </aside>
 
-  <!-- Main Content -->
-  <main class="main-content">
-    <!-- Topbar -->
+  <main class="main">
     <div class="topbar">
-      <h1 class="page-title">My Profile</h1>
+      <h1>My Profile</h1>
       <div class="user-info">
-        <div class="avatar">JD</div>
-        <span class="fw-semibold">John Doe</span>
+        <div class="topbar-avatar" id="userAvatar">--</div>
+        <span class="user-email" id="userEmail">Loading...</span>
       </div>
     </div>
 
-    <!-- Dashboard Body -->
-    <div class="dashboard-body">
-      <div class="row justify-content-center">
-        <div class="col-xl-10">
-          <!-- Profile Card -->
-          <div class="content-card mb-4">
-            <div class="profile-banner">
-              <div class="profile-avatar">JD</div>
-              <h4 class="fw-bold mb-1">John Doe</h4>
-              <p class="text-white-50 mb-2">Patient ID: #P12345</p>
-              <button class="btn btn-light btn-sm px-4" onclick="toggleEdit()">
-                <i class="fa fa-edit me-2"></i>Edit Profile
-              </button>
-            </div>
+    <div class="body">
+      <div class="alert" id="pageAlert"></div>
 
-            <!-- View Mode -->
-            <div id="viewMode" class="p-4">
-              <div class="row g-4">
-                <div class="col-md-6">
-                  <div class="info-item">
-                    <div class="info-label">Full Name</div>
-                    <div class="info-value">John Doe</div>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="info-item">
-                    <div class="info-label">Date of Birth</div>
-                    <div class="info-value">January 15, 1985</div>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="info-item">
-                    <div class="info-label">Gender</div>
-                    <div class="info-value">Male</div>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="info-item">
-                    <div class="info-label">Blood Group</div>
-                    <div class="info-value">O+</div>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="info-item">
-                    <div class="info-label">Email Address</div>
-                    <div class="info-value">john.doe@example.com</div>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="info-item">
-                    <div class="info-label">Phone Number</div>
-                    <div class="info-value">+1 234 567 8900</div>
-                  </div>
-                </div>
-                <div class="col-12">
-                  <div class="info-item">
-                    <div class="info-label">Address</div>
-                    <div class="info-value">123 Main Street, Apartment 4B, New York, NY 10001</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Edit Mode (Hidden by default) -->
-            <div id="editMode" class="p-4" style="display: none;">
-              <form id="profileForm">
-                <div class="row g-3">
-                  <div class="col-md-6">
-                    <label class="form-label">Full Name</label>
-                    <input type="text" class="form-control" value="John Doe" required/>
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label">Date of Birth</label>
-                    <input type="date" class="form-control" value="1985-01-15" required/>
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label">Gender</label>
-                    <select class="form-select" required>
-                      <option value="male" selected>Male</option>
-                      <option value="female">Female</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label">Blood Group</label>
-                    <select class="form-select" required>
-                      <option value="">Select Blood Group</option>
-                      <option value="A+">A+</option>
-                      <option value="A-">A-</option>
-                      <option value="B+">B+</option>
-                      <option value="B-">B-</option>
-                      <option value="AB+">AB+</option>
-                      <option value="AB-">AB-</option>
-                      <option value="O+" selected>O+</option>
-                      <option value="O-">O-</option>
-                    </select>
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label">Email Address</label>
-                    <input type="email" class="form-control" value="john.doe@example.com" required/>
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label">Phone Number</label>
-                    <input type="tel" class="form-control" value="+1 234 567 8900" required/>
-                  </div>
-                  <div class="col-12">
-                    <label class="form-label">Address</label>
-                    <textarea class="form-control" rows="2" required>123 Main Street, Apartment 4B, New York, NY 10001</textarea>
-                  </div>
-                </div>
-                <div class="d-flex gap-3 justify-content-end mt-4">
-                  <button type="button" class="btn btn-outline-secondary px-4" onclick="toggleEdit()">
-                    Cancel
-                  </button>
-                  <button type="submit" class="btn btn-primary px-4">
-                    <i class="fa fa-save me-2"></i>Save Changes
-                  </button>
-                </div>
-              </form>
-            </div>
+      <!-- Profile Card -->
+      <div class="profile-card">
+        <div class="profile-banner">
+          <div class="profile-avatar"><i class="fa fa-user"></i></div>
+          <div class="profile-info">
+            <div class="name" id="profileName">Loading…</div>
+            <div class="pid" id="profilePatientId">—</div>
+            <button class="btn-edit" onclick="toggleEdit()"><i class="fa fa-pen"></i> Edit Profile</button>
           </div>
+        </div>
 
-          <div class="row g-4">
-            <!-- Medical Information -->
-            <div class="col-lg-6">
-              <div class="content-card">
-                <div class="card-header">
-                  <i class="fa fa-heartbeat me-2 text-danger"></i>Medical Information
-                </div>
-                <div class="p-3">
-                  <div class="info-item">
-                    <div class="info-label">Height</div>
-                    <div class="info-value">175 cm</div>
-                  </div>
-                  <div class="info-item">
-                    <div class="info-label">Weight</div>
-                    <div class="info-value">75 kg</div>
-                  </div>
-                  <div class="info-item">
-                    <div class="info-label">Allergies</div>
-                    <div class="info-value">Penicillin, Peanuts</div>
-                  </div>
-                  <div class="info-item">
-                    <div class="info-label">Chronic Conditions</div>
-                    <div class="info-value">Hypertension</div>
-                  </div>
-                  <button class="btn btn-outline-primary btn-sm w-100 mt-3">
-                    <i class="fa fa-edit me-2"></i>Update Medical Info
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Emergency Contact -->
-            <div class="col-lg-6">
-              <div class="content-card">
-                <div class="card-header">
-                  <i class="fa fa-phone-square me-2 text-warning"></i>Emergency Contact
-                </div>
-                <div class="p-3">
-                  <div class="info-item">
-                    <div class="info-label">Contact Name</div>
-                    <div class="info-value">Jane Doe</div>
-                  </div>
-                  <div class="info-item">
-                    <div class="info-label">Relationship</div>
-                    <div class="info-value">Spouse</div>
-                  </div>
-                  <div class="info-item">
-                    <div class="info-label">Phone Number</div>
-                    <div class="info-value">+1 234 567 8901</div>
-                  </div>
-                  <div class="info-item">
-                    <div class="info-label">Email</div>
-                    <div class="info-value">jane.doe@example.com</div>
-                  </div>
-                  <button class="btn btn-outline-primary btn-sm w-100 mt-3">
-                    <i class="fa fa-edit me-2"></i>Update Emergency Contact
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Insurance Information -->
-            <div class="col-lg-6">
-              <div class="content-card">
-                <div class="card-header">
-                  <i class="fa fa-shield-halved me-2 text-success"></i>Insurance Information
-                </div>
-                <div class="p-3">
-                  <div class="info-item">
-                    <div class="info-label">Insurance Provider</div>
-                    <div class="info-value">BlueCross BlueShield</div>
-                  </div>
-                  <div class="info-item">
-                    <div class="info-label">Policy Number</div>
-                    <div class="info-value">BCBS-123456789</div>
-                  </div>
-                  <div class="info-item">
-                    <div class="info-label">Group Number</div>
-                    <div class="info-value">GRP-9876543</div>
-                  </div>
-                  <div class="info-item">
-                    <div class="info-label">Valid Until</div>
-                    <div class="info-value">December 31, 2025</div>
-                  </div>
-                  <button class="btn btn-outline-primary btn-sm w-100 mt-3">
-                    <i class="fa fa-edit me-2"></i>Update Insurance Info
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Account Security -->
-            <div class="col-lg-6">
-              <div class="content-card">
-                <div class="card-header">
-                  <i class="fa fa-lock me-2 text-info"></i>Account Security
-                </div>
-                <div class="p-3">
-                  <div class="info-item">
-                    <div class="info-label">Password</div>
-                    <div class="info-value">••••••••</div>
-                  </div>
-                  <div class="info-item">
-                    <div class="info-label">Last Password Change</div>
-                    <div class="info-value">November 15, 2024</div>
-                  </div>
-                  <div class="info-item">
-                    <div class="info-label">Two-Factor Authentication</div>
-                    <div class="info-value">
-                      <span class="badge bg-danger-soft text-danger">Disabled</span>
-                    </div>
-                  </div>
-                  <button class="btn btn-outline-primary btn-sm w-100 mt-3">
-                    <i class="fa fa-key me-2"></i>Change Password
-                  </button>
-                  <button class="btn btn-outline-success btn-sm w-100 mt-2">
-                    <i class="fa fa-shield me-2"></i>Enable 2FA
-                  </button>
-                </div>
-              </div>
-            </div>
+        <!-- View mode -->
+        <div class="info-section" id="viewMode">
+          <div class="info-grid">
+            <div class="info-item"><div class="info-label">Full Name</div><div class="info-value" id="vName">—</div></div>
+            <div class="info-item"><div class="info-label">Age</div><div class="info-value" id="vAge">—</div></div>
+            <div class="info-item"><div class="info-label">Gender</div><div class="info-value" id="vGender">—</div></div>
+            <div class="info-item"><div class="info-label">Phone</div><div class="info-value" id="vPhone">—</div></div>
+            <div class="info-item"><div class="info-label">Email</div><div class="info-value" id="vEmail">—</div></div>
+            <div class="info-item"><div class="info-label">Patient ID</div><div class="info-value" id="vPatientId">—</div></div>
+            <div class="info-item full"><div class="info-label">Address</div><div class="info-value" id="vAddress">—</div></div>
           </div>
+        </div>
+
+        <!-- Edit mode -->
+        <div class="edit-section" id="editMode">
+          <form id="profileForm" novalidate>
+            <input type="hidden" id="editPatientId"/>
+            <div class="form-row">
+              <div class="form-group"><label>Full Name</label><input type="text" id="eName" required/></div>
+              <div class="form-group"><label>Age</label><input type="number" id="eAge" min="1"/></div>
+              <div class="form-group">
+                <label>Gender</label>
+                <select id="eGender">
+                  <option value="">Select</option>
+                  <option>Male</option><option>Female</option><option>Other</option>
+                </select>
+              </div>
+              <div class="form-group"><label>Phone</label><input type="tel" id="ePhone"/></div>
+              <div class="form-group"><label>Email</label><input type="email" id="eEmail"/></div>
+              <div class="form-group full"><label>Address</label><textarea id="eAddress" rows="2"></textarea></div>
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn-ghost" onclick="toggleEdit()">Cancel</button>
+              <button type="submit" class="btn-save" id="saveBtn"><i class="fa fa-floppy-disk"></i> Save Changes</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Appointment stats -->
+      <div class="stats-grid">
+        <div class="stat-card violet">
+          <div class="stat-icon violet"><i class="fa fa-calendar-check"></i></div>
+          <div><div class="stat-num violet" id="totalAppts">—</div><div class="stat-label">Total Appointments</div></div>
+        </div>
+        <div class="stat-card gold">
+          <div class="stat-icon gold"><i class="fa fa-clock"></i></div>
+          <div><div class="stat-num gold" id="scheduledAppts">—</div><div class="stat-label">Scheduled</div></div>
+        </div>
+        <div class="stat-card teal">
+          <div class="stat-icon teal"><i class="fa fa-circle-check"></i></div>
+          <div><div class="stat-num teal" id="completedAppts">—</div><div class="stat-label">Completed</div></div>
         </div>
       </div>
     </div>
   </main>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+  const API   = 'http://127.0.0.1:8000';
+  const token = localStorage.getItem('token');
+  if (!token) window.location.href = 'patient-login.html';
+
+  const email = localStorage.getItem('email') || 'User';
+  document.getElementById('userEmail').textContent  = email;
+  document.getElementById('userAvatar').textContent = email.substring(0,2).toUpperCase();
+
+  let patientRecord = null;
+
+  function authHdr() { return { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }; }
+  function doLogout() { localStorage.clear(); window.location.href = 'patient-login.html'; }
+
+  function showAlert(msg, type) {
+    const el = document.getElementById('pageAlert');
+    el.className = `alert alert-${type} show`; el.textContent = msg;
+    setTimeout(() => el.classList.remove('show'), 3000);
+  }
+
+  function populateView(p) {
+    document.getElementById('profileName').textContent      = p.name;
+    document.getElementById('profilePatientId').textContent = `Patient ID: #P${p.id}`;
+    document.getElementById('vName').textContent    = p.name;
+    document.getElementById('vAge').textContent     = p.age || '—';
+    document.getElementById('vGender').textContent  = p.gender || '—';
+    document.getElementById('vPhone').textContent   = p.phone || '—';
+    document.getElementById('vEmail').textContent   = p.email || '—';
+    document.getElementById('vPatientId').textContent = `#P${p.id}`;
+    document.getElementById('vAddress').textContent  = p.address || '—';
+  }
+
   function toggleEdit() {
-    const viewMode = document.getElementById('viewMode');
-    const editMode = document.getElementById('editMode');
-    
-    if (viewMode.style.display === 'none') {
-      viewMode.style.display = 'block';
-      editMode.style.display = 'none';
-    } else {
-      viewMode.style.display = 'none';
-      editMode.style.display = 'block';
+    const view = document.getElementById('viewMode');
+    const edit = document.getElementById('editMode');
+    const isEditing = edit.classList.contains('show');
+    if (isEditing) { view.style.display=''; edit.classList.remove('show'); }
+    else {
+      document.getElementById('editPatientId').value = patientRecord.id;
+      document.getElementById('eName').value    = patientRecord.name || '';
+      document.getElementById('eAge').value     = patientRecord.age || '';
+      document.getElementById('eGender').value  = patientRecord.gender || '';
+      document.getElementById('ePhone').value   = patientRecord.phone || '';
+      document.getElementById('eEmail').value   = patientRecord.email || '';
+      document.getElementById('eAddress').value = patientRecord.address || '';
+      view.style.display = 'none'; edit.classList.add('show');
     }
   }
 
-  document.getElementById('profileForm').addEventListener('submit', function(e) {
+  async function loadProfile() {
+    try {
+      const res   = await fetch(`${API}/patients`, { headers: authHdr() });
+      if (res.status === 401) { doLogout(); return; }
+      const match = (await res.json()).find(p => p.email?.toLowerCase() === email.toLowerCase());
+      if (!match) { document.getElementById('profileName').textContent = email.split('@')[0]; document.getElementById('vEmail').textContent = email; return; }
+      patientRecord = match; populateView(match);
+    } catch { showAlert('Failed to load profile.', 'danger'); }
+  }
+
+  async function loadStats() {
+    try {
+      const res  = await fetch(`${API}/appointments`, { headers: authHdr() });
+      const data = await res.json();
+      const mine = patientRecord ? data.filter(a => a.patient_id === patientRecord.id) : data;
+      document.getElementById('totalAppts').textContent     = mine.length;
+      document.getElementById('scheduledAppts').textContent = mine.filter(a=>a.status==='scheduled').length;
+      document.getElementById('completedAppts').textContent = mine.filter(a=>a.status==='completed').length;
+    } catch {}
+  }
+
+  document.getElementById('profileForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-    alert('Profile updated successfully!');
-    toggleEdit();
+    if (!patientRecord) return;
+    const btn = document.getElementById('saveBtn');
+    btn.disabled = true; btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Saving…';
+    const body = {
+      name:    document.getElementById('eName').value.trim(),
+      age:     parseInt(document.getElementById('eAge').value)||null,
+      gender:  document.getElementById('eGender').value||null,
+      phone:   document.getElementById('ePhone').value.trim()||null,
+      email:   document.getElementById('eEmail').value.trim()||null,
+      address: document.getElementById('eAddress').value.trim()||null,
+    };
+    try {
+      const res = await fetch(`${API}/patients/${patientRecord.id}`, { method:'PUT', headers:authHdr(), body:JSON.stringify(body) });
+      if (!res.ok) throw new Error();
+      patientRecord = await res.json();
+      populateView(patientRecord); toggleEdit(); showAlert('Profile updated successfully!', 'success');
+    } catch { showAlert('Failed to update profile.', 'danger'); }
+    finally { btn.disabled=false; btn.innerHTML='<i class="fa fa-floppy-disk"></i> Save Changes'; }
   });
+
+  async function init() { await loadProfile(); await loadStats(); }
+  init();
 </script>
 </body>
 </html>

@@ -106,7 +106,10 @@
   const API = 'http://127.0.0.1:8000';
 
   // Redirect if already logged in
-  if (localStorage.getItem('token')) window.location.href = 'admin-dashboard.html';
+  if (localStorage.getItem('token')) {
+    const role = localStorage.getItem('role');
+    window.location.href = role === 'doctor' ? 'doctor-dashboard.html' : 'admin-dashboard.html';
+  }
 
   function togglePwd() {
     const inp = document.getElementById('pwdInput');
