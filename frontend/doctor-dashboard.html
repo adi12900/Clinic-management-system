@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Doctor Dashboard – ClinicCare</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+  <link href="assets/css/style.css" rel="stylesheet"/>
+</head>
+<body>
+<div class="dashboard-wrapper">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <i class="fa-solid fa-staff-snake"></i>
+      <span>ClinicCare</span>
+    </div>
+    <ul class="sidebar-nav">
+      <li class="nav-section">MAIN MENU</li>
+      <li><a href="#" class="active" onclick="showSection('dashboard',this)"><i class="fa fa-th-large"></i> Dashboard</a></li>
+      <li><a href="#" onclick="showSection('appointments',this)"><i class="fa fa-calendar-check"></i> My Appointments</a></li>
+      <li><a href="#" onclick="showSection('patients',this)"><i class="fa fa-users"></i> My Patients</a></li>
+      <li class="nav-section">ACCOUNT</li>
+      <li><a href="#" onclick="showSection('profile',this)"><i class="fa fa-user-doctor"></i> My Profile</a></li>
+      <li class="logout-link"><a href="#" onclick="doLogout()"><i class="fa fa-right-from-bracket"></i> Logout</a></li>
+    </ul>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="topbar">
+      <div class="d-flex align-items-center gap-3">
+        <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
+        <h1 class="page-title" id="pageTitle">Dashboard</h1>
+      </div>
+      <div class="user-info">
+        <div class="avatar bg-success text-white" id="userAvatar">DR</div>
+        <span class="fw-semibold" id="userName">Doctor</span>
+      </div>
+    </div>
+
+    <div class="dashboard-body">
+
+      <!-- ===== DASHBOARD SECTION ===== -->
+      <div id="sec-dashboard">
+        <!-- Welcome -->
+        <div class="content-card mb-4">
+          <div style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); padding: 2rem; color: #fff; border-radius: 12px;">
+            <div class="row align-items-center">
+              <div class="col-md-8">
+                <h4 class="fw-bold mb-1">Good day, <span id="welcomeName">Doctor</span>! 👨‍⚕️</h4>
+                <p class="mb-0 text-white-50">Here's your clinic activity overview.</p>
+              </div>
+              <div class="col-md-4 text-center d-none d-md-block">
+                <i class="fa fa-user-doctor" style="font-size: 5rem; opacity: .2;"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-3 col-sm-6">
+            <div class="kpi-card">
+              <div class="kpi-icon bg-primary-soft text-primary"><i class="fa fa-calendar-check"></i></div>
+              <div><div class="kpi-num text-primary" id="s-total">—</div><div class="kpi-label">Total Appointments</div></div>
+            </div>
+          </div>
+          <div class="col-md-3 col-sm-6">
+            <div class="kpi-card">
+              <div class="kpi-icon bg-warning-soft text-warning"><i class="fa fa-clock"></i></div>
+              <div><div class="kpi-num text-warning" id="s-scheduled">—</div><div class="kpi-label">Scheduled</div></div>
+            </div>
+          </div>
+          <div class="col-md-3 col-sm-6">
+            <div class="kpi-card">
+              <div class="kpi-icon bg-success-soft text-success"><i class="fa fa-check-circle"></i></div>
+              <div><div class="kpi-num text-success" id="s-completed">—</div><div class="kpi-label">Completed</div></div>
+            </div>
+          </div>
+          <div class="col-md-3 col-sm-6">
+            <div class="kpi-card">
+              <div class="kpi-icon bg-danger-soft text-danger"><i class="fa fa-times-circle"></i></div>
+              <div><div class="kpi-num text-danger" id="s-cancelled">—</div><div class="kpi-label">Cancelled</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Today's Appointments -->
+        <div class="content-card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="fa fa-calendar-day me-2 text-primary"></i>Today's Appointments</span>
+            <span class="badge bg-primary rounded-pill" id="todayCount">0</span>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead><tr><th>#</th><th>Patient ID</th><th>Date</th><th>Status</th><th>Notes</th><th>Actions</th></tr></thead>
+              <tbody id="todayTable"><tr><td colspan="6" class="text-center text-muted py-4">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== APPOINTMENTS SECTION ===== -->
+      <div id="sec-appointments" class="d-none">
+        <div class="content-card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="fa fa-calendar-check me-2 text-primary"></i>All Appointments</span>
+            <div class="d-flex gap-2">
+              <select class="form-select form-select-sm" id="statusFilter" onchange="filterAppts()" style="width:auto;">
+                <option value="all">All Status</option>
+                <option value="scheduled">Scheduled</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead><tr><th>#</th><th>Patient ID</th><th>Date</th><th>Status</th><th>Notes</th><th>Actions</th></tr></thead>
+              <tbody id="allApptsTable"><tr><td colspan="6" class="text-center text-muted py-4">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== PATIENTS SECTION ===== -->
+      <div id="sec-patients" class="d-none">
+        <div class="content-card">
+          <div class="card-header"><i class="fa fa-users me-2 text-success"></i>All Patients</div>
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead><tr><th>#</th><th>Name</th><th>Age</th><th>Gender</th><th>Phone</th><th>Email</th></tr></thead>
+              <tbody id="patientsTable"><tr><td colspan="6" class="text-center text-muted py-4">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== PROFILE SECTION ===== -->
+      <div id="sec-profile" class="d-none">
+        <div class="row justify-content-center">
+          <div class="col-lg-6">
+            <div class="content-card">
+              <div class="profile-banner">
+                <div class="profile-avatar"><i class="fa fa-user-doctor"></i></div>
+                <h5 class="fw-bold mb-1" id="profileName">Doctor</h5>
+                <small class="text-white-50" id="profileEmail">—</small>
+              </div>
+              <div class="p-4">
+                <div id="doctorInfo">
+                  <div class="text-center text-muted py-3">Loading profile...</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- Update Status Modal -->
+<div class="modal fade" id="statusModal" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h6 class="modal-title">Update Appointment Status</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="updateApptId"/>
+        <label class="form-label">Status</label>
+        <select class="form-select" id="newStatus">
+          <option value="scheduled">Scheduled</option>
+          <option value="completed">Completed</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+        <label class="form-label mt-3">Notes</label>
+        <textarea class="form-control" id="updateNotes" rows="3" placeholder="Add notes..."></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary btn-sm" onclick="submitStatusUpdate()">Update</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  const API   = 'http://127.0.0.1:8000';
+  const token = localStorage.getItem('token');
+  if (!token) window.location.href = 'login.html';
+
+  const userEmail = localStorage.getItem('email') || 'Doctor';
+  document.getElementById('userName').textContent    = userEmail;
+  document.getElementById('userAvatar').textContent  = userEmail.substring(0,2).toUpperCase();
+  document.getElementById('profileEmail').textContent = userEmail;
+  document.getElementById('welcomeName').textContent  = userEmail.split('@')[0];
+  document.getElementById('profileName').textContent  = userEmail.split('@')[0];
+
+  let allAppointments = [];
+  const statusClass   = { scheduled: 'status-pending', completed: 'status-completed', cancelled: 'status-cancelled' };
+
+  function authHdr() {
+    return { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+  }
+
+  function showSection(name, el) {
+    ['dashboard','appointments','patients','profile'].forEach(s =>
+      document.getElementById('sec-' + s).classList.add('d-none')
+    );
+    document.getElementById('sec-' + name).classList.remove('d-none');
+    document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+    if (el) el.classList.add('active');
+    document.getElementById('pageTitle').textContent = name.charAt(0).toUpperCase() + name.slice(1);
+    if (name === 'dashboard')    { loadStats(); loadTodayAppts(); }
+    if (name === 'appointments') loadAllAppts();
+    if (name === 'patients')     loadPatients();
+    if (name === 'profile')      loadProfile();
+    toggleSidebar(true);
+  }
+
+  function toggleSidebar(forceClose) {
+    const s = document.getElementById('sidebar');
+    const o = document.getElementById('sidebarOverlay');
+    if (forceClose) { s.classList.remove('open'); o.classList.remove('open'); return; }
+    s.classList.toggle('open'); o.classList.toggle('open');
+  }
+
+  function doLogout() { localStorage.clear(); window.location.href = 'login.html'; }
+
+  // ---- Stats ----
+  async function loadStats() {
+    const res  = await fetch(`${API}/dashboard`, { headers: authHdr() });
+    if (res.status === 401) { doLogout(); return; }
+    const d = await res.json();
+    document.getElementById('s-total').textContent     = d.total_appointments;
+    document.getElementById('s-scheduled').textContent = d.scheduled;
+    document.getElementById('s-completed').textContent = d.completed;
+    document.getElementById('s-cancelled').textContent = d.cancelled;
+  }
+
+  // ---- Today's Appointments ----
+  async function loadTodayAppts() {
+    const res  = await fetch(`${API}/appointments`, { headers: authHdr() });
+    const data = await res.json();
+    const today = new Date().toISOString().split('T')[0];
+    const todayAppts = data.filter(a => a.appointment_date === today);
+    document.getElementById('todayCount').textContent = todayAppts.length;
+    renderApptTable('todayTable', todayAppts);
+  }
+
+  // ---- All Appointments ----
+  async function loadAllAppts() {
+    const res  = await fetch(`${API}/appointments`, { headers: authHdr() });
+    allAppointments = await res.json();
+    filterAppts();
+  }
+
+  function filterAppts() {
+    const filter = document.getElementById('statusFilter').value;
+    const filtered = filter === 'all' ? allAppointments : allAppointments.filter(a => a.status === filter);
+    renderApptTable('allApptsTable', filtered);
+  }
+
+  function renderApptTable(tbodyId, data) {
+    const tbody = document.getElementById(tbodyId);
+    if (!data.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No appointments found.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = data.map((a, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td><span class="badge bg-light text-dark border">#P${a.patient_id}</span></td>
+        <td>${a.appointment_date}</td>
+        <td><span class="badge-status ${statusClass[a.status] || 'status-pending'}">${a.status}</span></td>
+        <td>${a.notes || '—'}</td>
+        <td>
+          <button class="btn btn-action btn-outline-primary" onclick="openStatusModal(${a.id}, '${a.status}', \`${(a.notes||'').replace(/`/g,"'")}\`)">
+            <i class="fa fa-edit"></i> Update
+          </button>
+        </td>
+      </tr>`).join('');
+  }
+
+  // ---- Patients ----
+  async function loadPatients() {
+    const res  = await fetch(`${API}/patients`, { headers: authHdr() });
+    const data = await res.json();
+    const tbody = document.getElementById('patientsTable');
+    if (!data.length) { tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No patients found.</td></tr>'; return; }
+    tbody.innerHTML = data.map((p, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td><i class="fa fa-user-circle me-2 text-primary"></i>${p.name}</td>
+        <td>${p.age || '—'}</td>
+        <td>${p.gender || '—'}</td>
+        <td>${p.phone || '—'}</td>
+        <td>${p.email || '—'}</td>
+      </tr>`).join('');
+  }
+
+  // ---- Profile ----
+  async function loadProfile() {
+    const res  = await fetch(`${API}/doctors`, { headers: authHdr() });
+    const data = await res.json();
+    const div  = document.getElementById('doctorInfo');
+    if (!data.length) { div.innerHTML = '<p class="text-muted text-center">No doctor profile linked to this account.</p>'; return; }
+    // Show first doctor (or match by email if available)
+    const d = data[0];
+    div.innerHTML = `
+      <div class="info-item"><div class="info-label">Name</div><div class="info-value">${d.name}</div></div>
+      <div class="info-item"><div class="info-label">Specialization</div><div class="info-value">${d.specialization}</div></div>
+      <div class="info-item"><div class="info-label">Phone</div><div class="info-value">${d.phone || '—'}</div></div>
+      <div class="info-item"><div class="info-label">Email</div><div class="info-value">${d.email || '—'}</div></div>
+      <div class="info-item"><div class="info-label">Available Days</div><div class="info-value">${d.available_days || '—'}</div></div>
+    `;
+    document.getElementById('profileName').textContent = d.name;
+  }
+
+  // ---- Update Status ----
+  function openStatusModal(id, currentStatus, currentNotes) {
+    document.getElementById('updateApptId').value  = id;
+    document.getElementById('newStatus').value     = currentStatus;
+    document.getElementById('updateNotes').value   = currentNotes;
+    new bootstrap.Modal(document.getElementById('statusModal')).show();
+  }
+
+  async function submitStatusUpdate() {
+    const id     = document.getElementById('updateApptId').value;
+    const status = document.getElementById('newStatus').value;
+    const notes  = document.getElementById('updateNotes').value.trim();
+
+    // Fetch current appointment to get all fields for PUT
+    const getRes = await fetch(`${API}/appointments/${id}`, { headers: authHdr() });
+    const appt   = await getRes.json();
+
+    const res = await fetch(`${API}/appointments/${id}`, {
+      method: 'PUT',
+      headers: authHdr(),
+      body: JSON.stringify({
+        patient_id:       appt.patient_id,
+        doctor_id:        appt.doctor_id,
+        appointment_date: appt.appointment_date,
+        status,
+        notes: notes || null
+      })
+    });
+
+    bootstrap.Modal.getInstance(document.getElementById('statusModal')).hide();
+    if (res.ok) { loadStats(); loadTodayAppts(); loadAllAppts(); }
+  }
+
+  // Initial load
+  loadStats();
+  loadTodayAppts();
+</script>
+</body>
+</html>

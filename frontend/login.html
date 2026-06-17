@@ -146,7 +146,10 @@
       }
       localStorage.setItem('token', data.access_token);
       localStorage.setItem('role', data.role);
-      window.location.href = 'admin-dashboard.html';
+      localStorage.setItem('email', email);
+      const role = data.role;
+      if (role === 'doctor') window.location.href = 'doctor-dashboard.html';
+      else window.location.href = 'admin-dashboard.html';
     } catch {
       errDiv.textContent = 'Cannot reach server. Is the backend running?';
       errDiv.classList.remove('d-none');
