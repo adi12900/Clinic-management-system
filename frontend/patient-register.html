@@ -51,9 +51,9 @@
               <div class="invalid-feedback">Please enter your full name</div>
             </div>
             <div class="col-md-6">
-              <label class="form-label">Age <span class="text-danger">*</span></label>
-              <input type="number" class="form-control" id="age" placeholder="25" min="1" max="150" required/>
-              <div class="invalid-feedback">Please enter a valid age</div>
+              <label class="form-label">Date of Birth <span class="text-danger">*</span></label>
+              <input type="date" class="form-control" id="dob" required/>
+              <div class="invalid-feedback">Please select your date of birth</div>
             </div>
             <div class="col-md-6">
               <label class="form-label">Gender <span class="text-danger">*</span></label>
@@ -214,7 +214,7 @@
     alertDiv.classList.add('d-none');
 
     const name     = document.getElementById('fullName').value.trim();
-    const age      = parseInt(document.getElementById('age').value);
+    const dob      = document.getElementById('dob').value;
     const gender   = document.getElementById('gender').value;
     const phone    = document.getElementById('phone').value.trim();
     const email    = document.getElementById('email').value.trim();
@@ -225,45 +225,19 @@
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Registering...';
 
     try {
-      // Step 1: Create user account
-      const signupRes = await fetch(`${API}/signup`, {
+      const res = await fetch(`${API}/patient/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: name, email, password, role: 'patient' })
+        body: JSON.stringify({ name, dob, gender, phone, email, address, password })
       });
-      const signupData = await signupRes.json();
-      if (!signupRes.ok) {
-        throw new Error(signupData.detail || 'Signup failed.');
-      }
-
-      // Step 2: Login to get token
-      const loginRes = await fetch(`${API}/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      const loginData = await loginRes.json();
-      if (!loginRes.ok) throw new Error('Auto-login failed after registration.');
-
-      // Step 3: Create patient record
-      await fetch(`${API}/patients`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${loginData.access_token}`
-        },
-        body: JSON.stringify({ name, age, gender, phone, email, address })
-      });
-
-      localStorage.setItem('token', loginData.access_token);
-      localStorage.setItem('role', loginData.role);
-      localStorage.setItem('email', email);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Registration failed.');
 
       alertDiv.className = 'alert alert-success';
-      alertDiv.textContent = 'Registration successful! Redirecting...';
+      alertDiv.textContent = 'Registration successful! Redirecting to login...';
       alertDiv.classList.remove('d-none');
 
-      setTimeout(() => window.location.href = 'patient-dashboard.html', 1500);
+      setTimeout(() => window.location.href = 'patient-login.html', 1500);
     } catch (err) {
       alertDiv.className = 'alert alert-danger';
       alertDiv.textContent = err.message || 'Registration failed. Try again.';
