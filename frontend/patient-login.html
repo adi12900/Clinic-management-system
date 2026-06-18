@@ -128,7 +128,7 @@
 </div>
 
 <script>
-  const API = 'http://127.0.0.1:8000';
+  const API = window.location.protocol === 'file:' ? 'https://clinic-management-api.onrender.com' : window.location.origin;
   if (localStorage.getItem('token')) window.location.href = 'patient-dashboard.html';
 
   function togglePwd() {
