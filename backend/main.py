@@ -153,9 +153,9 @@ def get_or_404(query, detail: str):
 # 9. Auth Router and Pydantic Schemas
 # ==========================================
 try:
-    from .auth import get_current_user, require_admin, router as auth_router
+    from .auth import get_current_user, require_admin, require_doctor, router as auth_router
 except ImportError:
-    from auth import get_current_user, require_admin, router as auth_router
+    from auth import get_current_user, require_admin, require_doctor, router as auth_router
 
 app.include_router(auth_router)
 
@@ -194,7 +194,50 @@ class AppointmentSchema(BaseModel):
 
 
 class AppointmentStatusUpdate(BaseModel):
-    action: str  # "accept" or "reject"
+    action: str  # "accept", "cancel", or "reject"
+
+
+def get_patient_for_user(db: Session, user: User) -> Patient:
+    return get_or_404(db.query(Patient).filter(Patient.email == user.email), "Patient profile not found")
+
+
+def get_doctor_for_user(db: Session, user: User) -> Doctor:
+    return get_or_404(db.query(Doctor).filter(Doctor.email == user.email), "Doctor profile not found")
+
+
+def doctor_can_access_patient(db: Session, doctor_id: int, patient_id: int) -> bool:
+    return db.query(Appointment).filter(
+        Appointment.doctor_id == doctor_id,
+        Appointment.patient_id == patient_id,
+    ).first() is not None
+
+
+def ensure_patient_access(db: Session, current_user: User, patient_id: int):
+    if current_user.role == "admin":
+        return
+    if current_user.role == "patient":
+        patient = get_patient_for_user(db, current_user)
+        if patient.id == patient_id:
+            return
+    if current_user.role == "doctor":
+        doctor = get_doctor_for_user(db, current_user)
+        if doctor_can_access_patient(db, doctor.id, patient_id):
+            return
+    raise HTTPException(status_code=403, detail="Not allowed to access this patient")
+
+
+def ensure_appointment_access(db: Session, current_user: User, appointment: Appointment):
+    if current_user.role == "admin":
+        return
+    if current_user.role == "patient":
+        patient = get_patient_for_user(db, current_user)
+        if appointment.patient_id == patient.id:
+            return
+    if current_user.role == "doctor":
+        doctor = get_doctor_for_user(db, current_user)
+        if appointment.doctor_id == doctor.id:
+            return
+    raise HTTPException(status_code=403, detail="Not allowed to access this appointment")
 
 
 # ==========================================
@@ -204,14 +247,14 @@ class AppointmentStatusUpdate(BaseModel):
 def dashboard(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     q = db.query(Appointment)
     if current_user.role == "doctor":
-        doctor = db.query(Doctor).filter(Doctor.email == current_user.email).first()
-        if doctor:
-            q = q.filter(Appointment.doctor_id == doctor.id)
-        else:
-            q = q.filter(False)
+        doctor = get_doctor_for_user(db, current_user)
+        q = q.filter(Appointment.doctor_id == doctor.id)
+    elif current_user.role == "patient":
+        patient = get_patient_for_user(db, current_user)
+        q = q.filter(Appointment.patient_id == patient.id)
     return {
         "total_doctors": db.query(Doctor).count(),
-        "total_patients": db.query(Patient).count(),
+        "total_patients": db.query(Patient).count() if current_user.role == "admin" else 1,
         "total_appointments": q.count(),
         "scheduled": q.filter(Appointment.status == "scheduled").count(),
         "completed": q.filter(Appointment.status == "completed").count(),
@@ -224,11 +267,17 @@ def dashboard(current_user: User = Depends(get_current_user), db: Session = Depe
 # ==========================================
 @app.get("/doctors")
 def get_doctors(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if current_user.role == "doctor":
+        return [get_doctor_for_user(db, current_user)]
     return db.query(Doctor).all()
 
 
 @app.get("/doctors/{doctor_id}")
 def get_doctor(doctor_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if current_user.role == "doctor":
+        doctor = get_doctor_for_user(db, current_user)
+        if doctor.id != doctor_id:
+            raise HTTPException(status_code=403, detail="Not allowed to access this doctor")
     return get_or_404(db.query(Doctor).filter(Doctor.id == doctor_id), "Doctor not found")
 
 
@@ -264,16 +313,23 @@ def delete_doctor(doctor_id: int, current_user: User = Depends(require_admin), d
 # ==========================================
 @app.get("/patients")
 def get_patients(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if current_user.role == "patient":
+        return [get_patient_for_user(db, current_user)]
+    if current_user.role == "doctor":
+        doctor = get_doctor_for_user(db, current_user)
+        patient_ids = db.query(Appointment.patient_id).filter(Appointment.doctor_id == doctor.id).distinct()
+        return db.query(Patient).filter(Patient.id.in_(patient_ids)).all()
     return db.query(Patient).all()
 
 
 @app.get("/patients/{patient_id}")
 def get_patient(patient_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    ensure_patient_access(db, current_user, patient_id)
     return get_or_404(db.query(Patient).filter(Patient.id == patient_id), "Patient not found")
 
 
 @app.post("/patients", status_code=status.HTTP_201_CREATED)
-def create_patient(data: PatientSchema, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def create_patient(data: PatientSchema, current_user: User = Depends(require_admin), db: Session = Depends(get_db)):
     patient = Patient(**data.model_dump())
     db.add(patient)
     db.commit()
@@ -283,6 +339,9 @@ def create_patient(data: PatientSchema, current_user: User = Depends(get_current
 
 @app.put("/patients/{patient_id}")
 def update_patient(patient_id: int, data: PatientSchema, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if current_user.role == "doctor":
+        raise HTTPException(status_code=403, detail="Doctors cannot update patient profiles")
+    ensure_patient_access(db, current_user, patient_id)
     patient = get_or_404(db.query(Patient).filter(Patient.id == patient_id), "Patient not found")
     for key, value in data.model_dump().items():
         setattr(patient, key, value)
@@ -305,20 +364,29 @@ def delete_patient(patient_id: int, current_user: User = Depends(require_admin),
 @app.get("/appointments")
 def get_appointments(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     if current_user.role == "doctor":
-        doctor = db.query(Doctor).filter(Doctor.email == current_user.email).first()
-        if not doctor:
-            return []
+        doctor = get_doctor_for_user(db, current_user)
         return db.query(Appointment).filter(Appointment.doctor_id == doctor.id).all()
+    if current_user.role == "patient":
+        patient = get_patient_for_user(db, current_user)
+        return db.query(Appointment).filter(Appointment.patient_id == patient.id).all()
     return db.query(Appointment).all()
 
 
 @app.get("/appointments/{appointment_id}")
 def get_appointment(appointment_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    return get_or_404(db.query(Appointment).filter(Appointment.id == appointment_id), "Appointment not found")
+    appointment = get_or_404(db.query(Appointment).filter(Appointment.id == appointment_id), "Appointment not found")
+    ensure_appointment_access(db, current_user, appointment)
+    return appointment
 
 
 @app.post("/appointments", status_code=status.HTTP_201_CREATED)
 def create_appointment(data: AppointmentSchema, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if current_user.role == "doctor":
+        raise HTTPException(status_code=403, detail="Doctors cannot book patient appointments")
+    if current_user.role == "patient":
+        patient = get_patient_for_user(db, current_user)
+        if data.patient_id != patient.id:
+            raise HTTPException(status_code=403, detail="Patients can only book their own appointments")
     get_or_404(db.query(Doctor).filter(Doctor.id == data.doctor_id), "Doctor not found")
     get_or_404(db.query(Patient).filter(Patient.id == data.patient_id), "Patient not found")
     appointment = Appointment(**data.model_dump())
@@ -331,6 +399,11 @@ def create_appointment(data: AppointmentSchema, current_user: User = Depends(get
 @app.put("/appointments/{appointment_id}")
 def update_appointment(appointment_id: int, data: AppointmentSchema, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     appointment = get_or_404(db.query(Appointment).filter(Appointment.id == appointment_id), "Appointment not found")
+    ensure_appointment_access(db, current_user, appointment)
+    if current_user.role != "admin" and (data.patient_id != appointment.patient_id or data.doctor_id != appointment.doctor_id):
+        raise HTTPException(status_code=403, detail="Cannot move appointment ownership")
+    if current_user.role == "patient" and data.status != "cancelled":
+        raise HTTPException(status_code=403, detail="Patients can only cancel appointments")
     for key, value in data.model_dump().items():
         setattr(appointment, key, value)
     db.commit()
@@ -342,16 +415,14 @@ def update_appointment(appointment_id: int, data: AppointmentSchema, current_use
 def update_appointment_status(
     appointment_id: int,
     data: AppointmentStatusUpdate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_doctor),
     db: Session = Depends(get_db),
 ):
-    if current_user.role != "doctor":
-        raise HTTPException(status_code=403, detail="Only doctors can accept or reject appointments")
-    if data.action not in ("accept", "reject"):
-        raise HTTPException(status_code=400, detail="action must be 'accept' or 'reject'")
+    if data.action not in ("accept", "cancel", "reject"):
+        raise HTTPException(status_code=400, detail="action must be 'accept', 'cancel', or 'reject'")
 
     appointment = get_or_404(db.query(Appointment).filter(Appointment.id == appointment_id), "Appointment not found")
-    doctor = db.query(Doctor).filter(Doctor.email == current_user.email).first()
+    doctor = get_doctor_for_user(db, current_user)
     if not doctor or appointment.doctor_id != doctor.id:
         raise HTTPException(status_code=403, detail="Not your appointment")
 
@@ -364,6 +435,9 @@ def update_appointment_status(
 @app.delete("/appointments/{appointment_id}")
 def delete_appointment(appointment_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     appointment = get_or_404(db.query(Appointment).filter(Appointment.id == appointment_id), "Appointment not found")
+    ensure_appointment_access(db, current_user, appointment)
+    if current_user.role == "doctor":
+        raise HTTPException(status_code=403, detail="Doctors can cancel appointments instead of deleting them")
     db.delete(appointment)
     db.commit()
     return {"message": "Appointment deleted successfully"}
