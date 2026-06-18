@@ -23,19 +23,7 @@ router = APIRouter()
 security = HTTPBearer()
 
 
-class SignupRequest(BaseModel):
-    username: str
-    email: EmailStr
-    password: str
-    role: Optional[str] = "admin"
-
-    @field_validator("password")
-    @classmethod
-    def password_min_length(cls, v):
-        if len(v) < 6:
-            raise ValueError("Password must be at least 6 characters")
-        return v
-
+# ── Pydantic Schemas ───────────────────────────────────────────────────────────
 
 class LoginRequest(BaseModel):
     email: EmailStr
@@ -47,9 +35,8 @@ class LoginRequest(BaseModel):
     def valid_expected_role(cls, v):
         if v is None:
             return v
-        allowed = {"admin", "doctor", "patient"}
-        if v not in allowed:
-            raise ValueError(f"expected_role must be one of {allowed}")
+        if v not in {"admin", "doctor", "patient"}:
+            raise ValueError("expected_role must be admin, doctor, or patient")
         return v
 
 
@@ -93,6 +80,8 @@ class DoctorRegistrationSchema(BaseModel):
         return v
 
 
+# ── Helpers ────────────────────────────────────────────────────────────────────
+
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
@@ -106,6 +95,13 @@ def create_token(data: dict) -> str:
     payload["exp"] = datetime.now(timezone.utc) + timedelta(hours=TOKEN_EXPIRY_HOURS)
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
+
+def calculate_age(dob: date) -> int:
+    today = datetime.now().date()
+    return today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+
+
+# ── Auth Dependencies ──────────────────────────────────────────────────────────
 
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
@@ -129,48 +125,38 @@ def require_admin(current_user: User = Depends(get_current_user)) -> User:
     return current_user
 
 
-def require_patient(current_user: User = Depends(get_current_user)) -> User:
-    if current_user.role != "patient":
-        raise HTTPException(status_code=403, detail="Patient access required")
-    return current_user
-
-
 def require_doctor(current_user: User = Depends(get_current_user)) -> User:
     if current_user.role != "doctor":
         raise HTTPException(status_code=403, detail="Doctor access required")
     return current_user
 
 
-def calculate_age(dob: date) -> int:
-    today = datetime.now().date()
-    return today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+def require_patient(current_user: User = Depends(get_current_user)) -> User:
+    if current_user.role != "patient":
+        raise HTTPException(status_code=403, detail="Patient access required")
+    return current_user
 
 
-@router.post("/signup", status_code=status.HTTP_201_CREATED)
-def signup(data: SignupRequest, db: Session = Depends(get_db)):
-    if db.query(User).filter(User.email == data.email).first():
-        raise HTTPException(status_code=400, detail="Email already registered")
-    user = User(
-        username=data.username,
-        email=data.email,
-        password=hash_password(data.password),
-        role=data.role,
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    return {"message": "User created successfully", "user_id": user.id}
+def require_admin_or_doctor(current_user: User = Depends(get_current_user)) -> User:
+    if current_user.role not in ("admin", "doctor"):
+        raise HTTPException(status_code=403, detail="Admin or Doctor access required")
+    return current_user
 
+
+# ── Routes ─────────────────────────────────────────────────────────────────────
 
 @router.post("/login")
 def login(data: LoginRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == data.email).first()
+    # Same message for wrong email or wrong password — prevents user enumeration
     if not user or not verify_password(data.password, user.password):
         raise HTTPException(status_code=401, detail="Invalid email or password")
+    # Enforce portal separation at the backend level
     if data.expected_role and user.role != data.expected_role:
+        portal = {"admin": "Admin", "doctor": "Doctor", "patient": "Patient"}
         raise HTTPException(
             status_code=403,
-            detail=f"Please use the {user.role} login portal",
+            detail=f"Access denied. Please use the {portal.get(user.role, user.role)} login portal.",
         )
     token = create_token({"user_id": user.id, "role": user.role})
     return {"access_token": token, "token_type": "bearer", "role": user.role}
@@ -185,7 +171,6 @@ def logout():
 def patient_register(data: PatientRegistrationSchema, db: Session = Depends(get_db)):
     if db.query(User).filter(User.email == data.email).first():
         raise HTTPException(status_code=400, detail="Email already registered")
-
     user = User(
         username=data.name,
         email=data.email,
@@ -195,7 +180,6 @@ def patient_register(data: PatientRegistrationSchema, db: Session = Depends(get_
     db.add(user)
     db.commit()
     db.refresh(user)
-
     patient = Patient(
         name=data.name,
         age=calculate_age(data.dob),
@@ -207,7 +191,6 @@ def patient_register(data: PatientRegistrationSchema, db: Session = Depends(get_
     db.add(patient)
     db.commit()
     db.refresh(patient)
-
     return {"message": "Patient registered successfully", "user_id": user.id, "patient_id": patient.id}
 
 
@@ -215,7 +198,6 @@ def patient_register(data: PatientRegistrationSchema, db: Session = Depends(get_
 def doctor_register(data: DoctorRegistrationSchema, db: Session = Depends(get_db)):
     if db.query(User).filter(User.email == data.email).first():
         raise HTTPException(status_code=400, detail="Email already registered")
-
     full_name = f"{data.first_name} {data.last_name}"
     user = User(
         username=full_name,
@@ -226,7 +208,6 @@ def doctor_register(data: DoctorRegistrationSchema, db: Session = Depends(get_db
     db.add(user)
     db.commit()
     db.refresh(user)
-
     doctor = Doctor(
         name=full_name,
         specialization=data.specialization,
@@ -237,5 +218,4 @@ def doctor_register(data: DoctorRegistrationSchema, db: Session = Depends(get_db
     db.add(doctor)
     db.commit()
     db.refresh(doctor)
-
-    return {"message": "Doctor registration successful.", "user_id": user.id, "doctor_id": doctor.id}
+    return {"message": "Doctor registered successfully", "user_id": user.id, "doctor_id": doctor.id}
