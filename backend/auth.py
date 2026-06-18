@@ -118,6 +118,18 @@ def require_admin(current_user: User = Depends(get_current_user)) -> User:
     return current_user
 
 
+def require_patient(current_user: User = Depends(get_current_user)) -> User:
+    if current_user.role != "patient":
+        raise HTTPException(status_code=403, detail="Patient access required")
+    return current_user
+
+
+def require_doctor(current_user: User = Depends(get_current_user)) -> User:
+    if current_user.role != "doctor":
+        raise HTTPException(status_code=403, detail="Doctor access required")
+    return current_user
+
+
 def calculate_age(dob: date) -> int:
     today = datetime.now().date()
     return today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
@@ -210,4 +222,4 @@ def doctor_register(data: DoctorRegistrationSchema, db: Session = Depends(get_db
     db.commit()
     db.refresh(doctor)
 
-    return {"message": "Doctor registration successful. Awaiting admin approval.", "user_id": user.id, "doctor_id": doctor.id}
+    return {"message": "Doctor registration successful.", "user_id": user.id, "doctor_id": doctor.id}
