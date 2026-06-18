@@ -52,7 +52,7 @@ Base = declarative_base()
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, unique=True, nullable=False)
+    username = Column(String, nullable=False)  # not unique – email is the unique identifier
     email = Column(String, unique=True, nullable=False, index=True)
     password = Column(String, nullable=False)
     role = Column(String, default="admin")  # admin, doctor, patient
@@ -443,7 +443,90 @@ def delete_appointment(appointment_id: int, current_user: User = Depends(get_cur
     return {"message": "Appointment deleted successfully"}
 
 
-# 15. Health Check
+# ==========================================
+# 15. Seed Endpoint (populates live DB for testing)
+# ==========================================
+@app.post("/seed", status_code=status.HTTP_201_CREATED)
+def seed_database(db: Session = Depends(get_db)):
+    """Seed the database with Indian dummy data. Safe to call multiple times."""
+    import bcrypt as _bcrypt
+    from datetime import date as _date
+
+    SEED_SECRET = os.getenv("SEED_SECRET", "")
+    if not SEED_SECRET:
+        raise HTTPException(status_code=403, detail="Set SEED_SECRET env var to enable seeding")
+
+    def _hash(pw: str) -> str:
+        return _bcrypt.hashpw(pw.encode(), _bcrypt.gensalt()).decode()
+
+    PASSWORD = "1234567p"
+    created = {"users": 0, "doctors": 0, "patients": 0, "appointments": 0}
+
+    seed_users = [
+        {"username": "admin",              "email": "admin@clinic.com",          "role": "admin"},
+        {"username": "Dr. Rajesh Sharma",  "email": "rajesh.sharma@clinic.com",  "role": "doctor"},
+        {"username": "Dr. Priya Nair",     "email": "priya.nair@clinic.com",     "role": "doctor"},
+        {"username": "Dr. Arjun Mehta",    "email": "arjun.mehta@clinic.com",    "role": "doctor"},
+        {"username": "Anjali Verma",       "email": "anjali.verma@gmail.com",    "role": "patient"},
+        {"username": "Rohit Patel",        "email": "rohit.patel@gmail.com",     "role": "patient"},
+        {"username": "Sneha Iyer",         "email": "sneha.iyer@gmail.com",      "role": "patient"},
+        {"username": "Vikram Singh",       "email": "vikram.singh@gmail.com",    "role": "patient"},
+    ]
+    for u in seed_users:
+        if not db.query(User).filter(User.email == u["email"]).first():
+            db.add(User(username=u["username"], email=u["email"], password=_hash(PASSWORD), role=u["role"]))
+            created["users"] += 1
+    db.commit()
+
+    seed_doctors = [
+        {"name": "Dr. Rajesh Sharma", "specialization": "Cardiologist",  "phone": "9876543210", "email": "rajesh.sharma@clinic.com", "available_days": "Mon,Tue,Wed,Thu,Fri"},
+        {"name": "Dr. Priya Nair",    "specialization": "Dermatologist",  "phone": "9823456781", "email": "priya.nair@clinic.com",    "available_days": "Mon,Wed,Fri"},
+        {"name": "Dr. Arjun Mehta",   "specialization": "Orthopedic",     "phone": "9712345678", "email": "arjun.mehta@clinic.com",   "available_days": "Tue,Thu,Sat"},
+    ]
+    for d in seed_doctors:
+        if not db.query(Doctor).filter(Doctor.email == d["email"]).first():
+            db.add(Doctor(**d))
+            created["doctors"] += 1
+    db.commit()
+
+    seed_patients = [
+        {"name": "Anjali Verma", "age": 28, "gender": "Female", "phone": "9988776655", "email": "anjali.verma@gmail.com",  "address": "12, MG Road, Pune, Maharashtra"},
+        {"name": "Rohit Patel",  "age": 35, "gender": "Male",   "phone": "9977665544", "email": "rohit.patel@gmail.com",   "address": "45, Nehru Nagar, Ahmedabad, Gujarat"},
+        {"name": "Sneha Iyer",   "age": 22, "gender": "Female", "phone": "9966554433", "email": "sneha.iyer@gmail.com",    "address": "78, Anna Salai, Chennai, Tamil Nadu"},
+        {"name": "Vikram Singh", "age": 45, "gender": "Male",   "phone": "9955443322", "email": "vikram.singh@gmail.com",  "address": "33, Rajpur Road, Dehradun, Uttarakhand"},
+    ]
+    for p in seed_patients:
+        if not db.query(Patient).filter(Patient.email == p["email"]).first():
+            db.add(Patient(**p))
+            created["patients"] += 1
+    db.commit()
+
+    if db.query(Appointment).count() == 0:
+        doc1 = db.query(Doctor).filter(Doctor.email == "rajesh.sharma@clinic.com").first()
+        doc2 = db.query(Doctor).filter(Doctor.email == "priya.nair@clinic.com").first()
+        doc3 = db.query(Doctor).filter(Doctor.email == "arjun.mehta@clinic.com").first()
+        p1   = db.query(Patient).filter(Patient.email == "anjali.verma@gmail.com").first()
+        p2   = db.query(Patient).filter(Patient.email == "rohit.patel@gmail.com").first()
+        p3   = db.query(Patient).filter(Patient.email == "sneha.iyer@gmail.com").first()
+        p4   = db.query(Patient).filter(Patient.email == "vikram.singh@gmail.com").first()
+        from datetime import date as _d
+        appts = [
+            Appointment(patient_id=p1.id, doctor_id=doc1.id, appointment_date=_d(2025, 7, 10), status="scheduled", notes="Routine cardiac checkup"),
+            Appointment(patient_id=p2.id, doctor_id=doc1.id, appointment_date=_d(2025, 7, 12), status="pending",   notes="Chest pain follow-up"),
+            Appointment(patient_id=p3.id, doctor_id=doc2.id, appointment_date=_d(2025, 7, 11), status="completed", notes="Acne treatment"),
+            Appointment(patient_id=p4.id, doctor_id=doc3.id, appointment_date=_d(2025, 7, 14), status="scheduled", notes="Knee pain evaluation"),
+            Appointment(patient_id=p1.id, doctor_id=doc2.id, appointment_date=_d(2025, 7, 15), status="cancelled", notes="Rash consultation"),
+            Appointment(patient_id=p2.id, doctor_id=doc3.id, appointment_date=_d(2025, 7, 16), status="pending",   notes="Lower back pain"),
+        ]
+        for a in appts:
+            db.add(a)
+        db.commit()
+        created["appointments"] = 6
+
+    return {"message": "Seeded successfully", "created": created}
+
+
+# 16. Health Check
 # ==========================================
 @app.get("/health")
 def health_check(db: Session = Depends(get_db)):
