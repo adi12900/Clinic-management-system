@@ -3,14 +3,11 @@
 # ==========================================
 import os
 import logging
-from datetime import date, timedelta, datetime, timezone
+from datetime import date
 from contextlib import asynccontextmanager
 
-import bcrypt
-import jwt
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 from sqlalchemy import create_engine, Column, Integer, String, Date, Text, ForeignKey, event
@@ -26,10 +23,6 @@ logger = logging.getLogger(__name__)
 # ==========================================
 # 2. Configuration
 # ==========================================
-SECRET_KEY = os.getenv("SECRET_KEY", "change_this_in_production")
-ALGORITHM = "HS256"
-TOKEN_EXPIRY_HOURS = 24
-
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./clinic.db")
 
 # Render provides PostgreSQL URLs starting with "postgres://", SQLAlchemy needs "postgresql://"
@@ -120,8 +113,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-security = HTTPBearer()
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FRONTEND_DIR = os.path.join(BASE_DIR, "..", "frontend")
 
@@ -149,49 +140,8 @@ def get_db():
 
 
 # ==========================================
-# 8. Auth Helpers
+# 8. Shared Helpers
 # ==========================================
-def hash_password(password: str) -> str:
-    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-
-
-def verify_password(plain: str, hashed: str) -> bool:
-    return bcrypt.checkpw(plain.encode(), hashed.encode())
-
-
-def create_token(data: dict) -> str:
-    payload = data.copy()
-    payload["exp"] = datetime.now(timezone.utc) + timedelta(hours=TOKEN_EXPIRY_HOURS)
-    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
-
-
-def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(get_db),
-) -> User:
-    try:
-        payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
-        user = db.query(User).filter(User.id == payload.get("user_id")).first()
-        if not user:
-            raise HTTPException(status_code=401, detail="User not found")
-        return user
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token expired")
-    except jwt.InvalidTokenError:
-        raise HTTPException(status_code=401, detail="Invalid token")
-
-
-def require_admin(current_user: User = Depends(get_current_user)) -> User:
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Admin access required")
-    return current_user
-
-
-def calculate_age(dob: date) -> int:
-    today = datetime.now().date()
-    return today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
-
-
 def get_or_404(query, detail: str):
     obj = query.first()
     if not obj:
@@ -200,25 +150,14 @@ def get_or_404(query, detail: str):
 
 
 # ==========================================
-# 9. Pydantic Schemas
+# 9. Auth Router and Pydantic Schemas
 # ==========================================
-class SignupRequest(BaseModel):
-    username: str
-    email: EmailStr
-    password: str
-    role: Optional[str] = "admin"
+try:
+    from .auth import get_current_user, require_admin, router as auth_router
+except ImportError:
+    from auth import get_current_user, require_admin, router as auth_router
 
-    @field_validator("password")
-    @classmethod
-    def password_min_length(cls, v):
-        if len(v) < 6:
-            raise ValueError("Password must be at least 6 characters")
-        return v
-
-
-class LoginRequest(BaseModel):
-    email: EmailStr
-    password: str
+app.include_router(auth_router)
 
 
 class DoctorSchema(BaseModel):
@@ -256,79 +195,6 @@ class AppointmentSchema(BaseModel):
 
 class AppointmentStatusUpdate(BaseModel):
     action: str  # "accept" or "reject"
-
-
-class PatientRegistrationSchema(BaseModel):
-    name: str
-    dob: date
-    gender: str
-    phone: str
-    email: EmailStr
-    address: str
-    password: str
-
-    @field_validator("password")
-    @classmethod
-    def password_min_length(cls, v):
-        if len(v) < 6:
-            raise ValueError("Password must be at least 6 characters")
-        return v
-
-
-class DoctorRegistrationSchema(BaseModel):
-    first_name: str
-    last_name: str
-    dob: date
-    gender: str
-    license_number: str
-    specialization: str
-    experience: int
-    qualification: str
-    medical_school: str
-    phone: str
-    email: EmailStr
-    address: str
-    password: str
-
-    @field_validator("password")
-    @classmethod
-    def password_min_length(cls, v):
-        if len(v) < 6:
-            raise ValueError("Password must be at least 6 characters")
-        return v
-
-
-# ==========================================
-# 10. Auth Endpoints
-# ==========================================
-@app.post("/signup", status_code=status.HTTP_201_CREATED)
-def signup(data: SignupRequest, db: Session = Depends(get_db)):
-    if db.query(User).filter(User.email == data.email).first():
-        raise HTTPException(status_code=400, detail="Email already registered")
-    user = User(
-        username=data.username,
-        email=data.email,
-        password=hash_password(data.password),
-        role=data.role,
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    return {"message": "User created successfully", "user_id": user.id}
-
-
-@app.post("/login")
-def login(data: LoginRequest, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == data.email).first()
-    if not user or not verify_password(data.password, user.password):
-        raise HTTPException(status_code=401, detail="Invalid email or password")
-    token = create_token({"user_id": user.id, "role": user.role})
-    return {"access_token": token, "token_type": "bearer", "role": user.role}
-
-
-@app.get("/logout")
-def logout():
-    return {"message": "Logged out successfully"}
 
 
 # ==========================================
@@ -503,71 +369,7 @@ def delete_appointment(appointment_id: int, current_user: User = Depends(get_cur
     return {"message": "Appointment deleted successfully"}
 
 
-# ==========================================
-# 15. Registration Endpoints (no auth)
-# ==========================================
-@app.post("/patient/register", status_code=status.HTTP_201_CREATED)
-def patient_register(data: PatientRegistrationSchema, db: Session = Depends(get_db)):
-    if db.query(User).filter(User.email == data.email).first():
-        raise HTTPException(status_code=400, detail="Email already registered")
-
-    user = User(
-        username=data.name,
-        email=data.email,
-        password=hash_password(data.password),
-        role="patient",
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-
-    patient = Patient(
-        name=data.name,
-        age=calculate_age(data.dob),
-        gender=data.gender,
-        phone=data.phone,
-        email=data.email,
-        address=data.address,
-    )
-    db.add(patient)
-    db.commit()
-    db.refresh(patient)
-
-    return {"message": "Patient registered successfully", "user_id": user.id, "patient_id": patient.id}
-
-
-@app.post("/doctor/register", status_code=status.HTTP_201_CREATED)
-def doctor_register(data: DoctorRegistrationSchema, db: Session = Depends(get_db)):
-    if db.query(User).filter(User.email == data.email).first():
-        raise HTTPException(status_code=400, detail="Email already registered")
-
-    full_name = f"{data.first_name} {data.last_name}"
-    user = User(
-        username=full_name,
-        email=data.email,
-        password=hash_password(data.password),
-        role="doctor",
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-
-    doctor = Doctor(
-        name=full_name,
-        specialization=data.specialization,
-        phone=data.phone,
-        email=data.email,
-        available_days="Mon,Tue,Wed,Thu,Fri",
-    )
-    db.add(doctor)
-    db.commit()
-    db.refresh(doctor)
-
-    return {"message": "Doctor registration successful. Awaiting admin approval.", "user_id": user.id, "doctor_id": doctor.id}
-
-
-# ==========================================
-# 16. Health Check
+# 15. Health Check
 # ==========================================
 @app.get("/health")
 def health_check(db: Session = Depends(get_db)):
