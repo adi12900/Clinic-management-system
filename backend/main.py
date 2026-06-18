@@ -153,9 +153,9 @@ def get_or_404(query, detail: str):
 # 9. Auth Router and Pydantic Schemas
 # ==========================================
 try:
-    from .auth import get_current_user, require_admin, require_doctor, router as auth_router
+    from .auth import get_current_user, require_admin, require_doctor, require_admin_or_doctor, router as auth_router
 except ImportError:
-    from auth import get_current_user, require_admin, require_doctor, router as auth_router
+    from auth import get_current_user, require_admin, require_doctor, require_admin_or_doctor, router as auth_router
 
 app.include_router(auth_router)
 
@@ -216,9 +216,10 @@ def ensure_patient_access(db: Session, current_user: User, patient_id: int):
     if current_user.role == "admin":
         return
     if current_user.role == "patient":
-        patient = get_patient_for_user(db, current_user)
-        if patient.id == patient_id:
+        patient = db.query(Patient).filter(Patient.email == current_user.email).first()
+        if patient and patient.id == patient_id:
             return
+        raise HTTPException(status_code=403, detail="Not allowed to access this patient")
     if current_user.role == "doctor":
         doctor = get_doctor_for_user(db, current_user)
         if doctor_can_access_patient(db, doctor.id, patient_id):
@@ -230,9 +231,10 @@ def ensure_appointment_access(db: Session, current_user: User, appointment: Appo
     if current_user.role == "admin":
         return
     if current_user.role == "patient":
-        patient = get_patient_for_user(db, current_user)
-        if appointment.patient_id == patient.id:
+        patient = db.query(Patient).filter(Patient.email == current_user.email).first()
+        if patient and appointment.patient_id == patient.id:
             return
+        raise HTTPException(status_code=403, detail="Not allowed to access this appointment")
     if current_user.role == "doctor":
         doctor = get_doctor_for_user(db, current_user)
         if appointment.doctor_id == doctor.id:
