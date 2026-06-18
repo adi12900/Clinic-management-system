@@ -40,6 +40,17 @@ class SignupRequest(BaseModel):
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
+    expected_role: Optional[str] = None
+
+    @field_validator("expected_role")
+    @classmethod
+    def valid_expected_role(cls, v):
+        if v is None:
+            return v
+        allowed = {"admin", "doctor", "patient"}
+        if v not in allowed:
+            raise ValueError(f"expected_role must be one of {allowed}")
+        return v
 
 
 class PatientRegistrationSchema(BaseModel):
@@ -156,6 +167,11 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == data.email).first()
     if not user or not verify_password(data.password, user.password):
         raise HTTPException(status_code=401, detail="Invalid email or password")
+    if data.expected_role and user.role != data.expected_role:
+        raise HTTPException(
+            status_code=403,
+            detail=f"Please use the {user.role} login portal",
+        )
     token = create_token({"user_id": user.id, "role": user.role})
     return {"access_token": token, "token_type": "bearer", "role": user.role}
 
