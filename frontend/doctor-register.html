@@ -216,6 +216,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+  const API = window.location.protocol === 'file:' ? 'https://clinic-management-api.onrender.com' : window.location.origin;
+
   function nextStep(current) {
     const step = document.getElementById('step' + current);
     const inputs = step.querySelectorAll('input, select, textarea');
@@ -310,7 +312,7 @@
     };
 
     try {
-      const res = await fetch('http://127.0.0.1:8000/doctor/register', {
+      const res = await fetch(`${API}/doctor/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
