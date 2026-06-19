@@ -399,6 +399,7 @@
 
   const token = localStorage.getItem('token');
   if (!token) window.location.href = 'patient-login.html';
+  if (localStorage.getItem('role') !== 'patient') window.location.href = 'login.html';
 
   const email = localStorage.getItem('email') || 'User';
   document.getElementById('userEmail').textContent = email;

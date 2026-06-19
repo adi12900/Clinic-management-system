@@ -1,0 +1,367 @@
+{
+  "info": {
+    "name": "Clinic Management System API",
+    "_postman_id": "clinic-mgmt-collection",
+    "description": "All API endpoints for the Clinic Management System. Base URL: http://localhost:8000\n\n**Flow:**\n1. Run a Login request → copy the `access_token`\n2. In the collection Variables tab, paste it as the value of `token`\n3. All protected requests use {{token}} automatically.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000" },
+    { "key": "token",    "value": "<paste_token_here>" }
+  ],
+  "item": [
+
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Signup (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/signup", "host": ["{{base_url}}"], "path": ["signup"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"email\": \"admin@clinic.com\",\n  \"password\": \"1234567p\",\n  \"role\": \"admin\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login – Admin",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/login", "host": ["{{base_url}}"], "path": ["login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@clinic.com\",\n  \"password\": \"1234567p\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login – Doctor (Rajesh Sharma)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/login", "host": ["{{base_url}}"], "path": ["login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"rajesh.sharma@clinic.com\",\n  \"password\": \"1234567p\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login – Doctor (Priya Nair)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/login", "host": ["{{base_url}}"], "path": ["login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"priya.nair@clinic.com\",\n  \"password\": \"1234567p\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login – Patient (Anjali Verma)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/login", "host": ["{{base_url}}"], "path": ["login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"anjali.verma@gmail.com\",\n  \"password\": \"1234567p\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login – Patient (Rohit Patel)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/login", "host": ["{{base_url}}"], "path": ["login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"rohit.patel@gmail.com\",\n  \"password\": \"1234567p\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/logout", "host": ["{{base_url}}"], "path": ["logout"] }
+          }
+        },
+        {
+          "name": "Patient Self-Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/patient/register", "host": ["{{base_url}}"], "path": ["patient","register"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Meera Kapoor\",\n  \"dob\": \"1995-04-20\",\n  \"gender\": \"Female\",\n  \"phone\": \"9812345670\",\n  \"email\": \"meera.kapoor@gmail.com\",\n  \"address\": \"22, Connaught Place, New Delhi\",\n  \"password\": \"1234567p\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Doctor Self-Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/doctor/register", "host": ["{{base_url}}"], "path": ["doctor","register"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Suresh\",\n  \"last_name\": \"Rao\",\n  \"dob\": \"1980-08-15\",\n  \"gender\": \"Male\",\n  \"license_number\": \"MH-2023-4567\",\n  \"specialization\": \"Neurologist\",\n  \"experience\": 15,\n  \"qualification\": \"MBBS, MD\",\n  \"medical_school\": \"AIIMS Mumbai\",\n  \"phone\": \"9800112233\",\n  \"email\": \"suresh.rao@clinic.com\",\n  \"address\": \"10, Bandra West, Mumbai, Maharashtra\",\n  \"password\": \"1234567p\"\n}"
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Get Dashboard Stats",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/dashboard", "host": ["{{base_url}}"], "path": ["dashboard"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Doctors",
+      "item": [
+        {
+          "name": "Get All Doctors",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/doctors", "host": ["{{base_url}}"], "path": ["doctors"] }
+          }
+        },
+        {
+          "name": "Get Doctor by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/doctors/1", "host": ["{{base_url}}"], "path": ["doctors","1"] }
+          }
+        },
+        {
+          "name": "Create Doctor (Admin only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/doctors", "host": ["{{base_url}}"], "path": ["doctors"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Dr. Kavita Desai\",\n  \"specialization\": \"Gynecologist\",\n  \"phone\": \"9845671230\",\n  \"email\": \"kavita.desai@clinic.com\",\n  \"available_days\": \"Mon,Tue,Thu,Fri\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Doctor (Admin only)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/doctors/1", "host": ["{{base_url}}"], "path": ["doctors","1"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Dr. Rajesh Sharma\",\n  \"specialization\": \"Cardiologist\",\n  \"phone\": \"9876543210\",\n  \"email\": \"rajesh.sharma@clinic.com\",\n  \"available_days\": \"Mon,Tue,Wed,Thu,Fri,Sat\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Doctor (Admin only)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/doctors/3", "host": ["{{base_url}}"], "path": ["doctors","3"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Patients",
+      "item": [
+        {
+          "name": "Get All Patients",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/patients", "host": ["{{base_url}}"], "path": ["patients"] }
+          }
+        },
+        {
+          "name": "Get Patient by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/patients/1", "host": ["{{base_url}}"], "path": ["patients","1"] }
+          }
+        },
+        {
+          "name": "Create Patient (Admin only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/patients", "host": ["{{base_url}}"], "path": ["patients"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Kiran Joshi\",\n  \"age\": 31,\n  \"gender\": \"Male\",\n  \"phone\": \"9834567890\",\n  \"email\": \"kiran.joshi@gmail.com\",\n  \"address\": \"55, Lajpat Nagar, New Delhi\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Patient",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/patients/1", "host": ["{{base_url}}"], "path": ["patients","1"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Anjali Verma\",\n  \"age\": 29,\n  \"gender\": \"Female\",\n  \"phone\": \"9988776655\",\n  \"email\": \"anjali.verma@gmail.com\",\n  \"address\": \"12, MG Road, Pune, Maharashtra\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Patient (Admin only)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/patients/4", "host": ["{{base_url}}"], "path": ["patients","4"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Appointments",
+      "item": [
+        {
+          "name": "Get All Appointments",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/appointments", "host": ["{{base_url}}"], "path": ["appointments"] }
+          }
+        },
+        {
+          "name": "Get Appointment by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/appointments/1", "host": ["{{base_url}}"], "path": ["appointments","1"] }
+          }
+        },
+        {
+          "name": "Create Appointment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/appointments", "host": ["{{base_url}}"], "path": ["appointments"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patient_id\": 1,\n  \"doctor_id\": 1,\n  \"appointment_date\": \"2025-07-20\",\n  \"status\": \"pending\",\n  \"notes\": \"Blood pressure check\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Appointment (Full)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/appointments/1", "host": ["{{base_url}}"], "path": ["appointments","1"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patient_id\": 1,\n  \"doctor_id\": 1,\n  \"appointment_date\": \"2025-07-22\",\n  \"status\": \"scheduled\",\n  \"notes\": \"Rescheduled – blood pressure check\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Accept / Cancel Appointment (Doctor only)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/appointments/2/status", "host": ["{{base_url}}"], "path": ["appointments","2","status"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"accept\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Appointment",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/appointments/6", "host": ["{{base_url}}"], "path": ["appointments","6"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Seed DB (Render)",
+      "item": [
+        {
+          "name": "Seed Live Database",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/seed", "host": ["{{base_url}}"], "path": ["seed"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Requires SEED_SECRET env var set on Render. Add it as a header or set it in Render env vars. Call this once after deploying to populate the live DB."
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/health", "host": ["{{base_url}}"], "path": ["health"] }
+          }
+        }
+      ]
+    }
+
+  ]
+}
