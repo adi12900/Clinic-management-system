@@ -161,6 +161,7 @@
   const API   = window.location.protocol === 'file:' ? 'https://clinic-management-api.onrender.com' : window.location.origin;
   const token = localStorage.getItem('token');
   if (!token) window.location.href = 'patient-login.html';
+  if (localStorage.getItem('role') !== 'patient') window.location.href = 'login.html';
 
   const email = localStorage.getItem('email') || 'Patient';
   document.getElementById('userEmail').textContent  = email;

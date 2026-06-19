@@ -129,7 +129,13 @@
 
 <script>
   const API = window.location.protocol === 'file:' ? 'https://clinic-management-api.onrender.com' : window.location.origin;
-  if (localStorage.getItem('token')) window.location.href = 'patient-dashboard.html';
+  if (localStorage.getItem('token')) {
+    if (localStorage.getItem('role') === 'patient') {
+      window.location.href = 'patient-dashboard.html';
+    } else {
+      localStorage.clear();
+    }
+  }
 
   function togglePwd() {
     const inp = document.getElementById('pwdInput'), ico = document.getElementById('eyeIcon');
@@ -150,7 +156,7 @@
     btn.disabled = true; btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Signing in…';
 
     try {
-      const res  = await fetch(`${API}/login`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email,password}) });
+      const res  = await fetch(`${API}/login`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email,password,expected_role:'patient'}) });
       const data = await res.json();
       if (!res.ok) { errEl.textContent = data.detail || 'Login failed. Check your credentials.'; errEl.classList.add('show'); return; }
       localStorage.setItem('token', data.access_token);

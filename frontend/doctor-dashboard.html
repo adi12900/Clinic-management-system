@@ -197,6 +197,7 @@
   const API   = window.location.protocol === 'file:' ? 'https://clinic-management-api.onrender.com' : window.location.origin;
   const token = localStorage.getItem('token');
   if (!token) window.location.href = 'login.html';
+  if (localStorage.getItem('role') !== 'doctor') window.location.href = 'login.html';
 
   const userEmail = localStorage.getItem('email') || 'Doctor';
   document.getElementById('userName').textContent    = userEmail;
@@ -288,8 +289,8 @@
             <button class="btn btn-action btn-success btn-sm me-1" onclick="respondAppointment(${a.id}, 'accept')">
               <i class="fa fa-check"></i> Accept
             </button>
-            <button class="btn btn-action btn-danger btn-sm" onclick="respondAppointment(${a.id}, 'reject')">
-              <i class="fa fa-times"></i> Reject
+            <button class="btn btn-action btn-danger btn-sm" onclick="respondAppointment(${a.id}, 'cancel')">
+              <i class="fa fa-times"></i> Cancel
             </button>
           ` : `
             <button class="btn btn-action btn-outline-primary btn-sm" onclick="openStatusModal(${a.id}, '${a.status}', \`${(a.notes||'').replace(/`/g,"'")}\`)">
@@ -335,7 +336,7 @@
     document.getElementById('profileName').textContent = d.name;
   }
 
-  // ---- Accept / Reject ----
+  // ---- Accept / Cancel ----
   async function respondAppointment(id, action) {
     const res = await fetch(`${API}/appointments/${id}/status`, {
       method: 'PATCH',
