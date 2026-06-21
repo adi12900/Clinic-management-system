@@ -3,13 +3,14 @@
 # ==========================================
 import os
 import logging
+import shutil
 from datetime import date
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, FileResponse
 from sqlalchemy import create_engine, Column, Integer, String, Date, Text, ForeignKey, event
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from sqlalchemy.exc import SQLAlchemyError
@@ -24,6 +25,8 @@ logger = logging.getLogger(__name__)
 # 2. Configuration
 # ==========================================
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./clinic.db")
+UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "uploads", "medical_reports")
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 # Render provides PostgreSQL URLs starting with "postgres://", SQLAlchemy needs "postgresql://"
 if DATABASE_URL.startswith("postgres://"):
@@ -87,6 +90,39 @@ class Appointment(Base):
     appointment_date = Column(Date, nullable=False)
     status = Column(String, default="pending")  # pending, scheduled, completed, cancelled
     notes = Column(Text)
+
+
+class Prescription(Base):
+    __tablename__ = "prescriptions"
+    id = Column(Integer, primary_key=True, index=True)
+    appointment_id = Column(Integer, ForeignKey("appointments.id", ondelete="CASCADE"), nullable=False, unique=True)
+    patient_id = Column(Integer, ForeignKey("patients.id", ondelete="CASCADE"), nullable=False)
+    doctor_id = Column(Integer, ForeignKey("doctors.id", ondelete="CASCADE"), nullable=False)
+    medicines = Column(Text, nullable=False)  # JSON string: [{name, dosage, duration, frequency}]
+    diagnosis = Column(Text)
+    reports_required = Column(Text)  # JSON string: ["Blood Test", "X-Ray"]
+    additional_notes = Column(Text)
+    created_at = Column(Date, default=date.today)
+
+
+class MedicalReport(Base):
+    __tablename__ = "medical_reports"
+    id = Column(Integer, primary_key=True, index=True)
+    patient_id = Column(Integer, ForeignKey("patients.id", ondelete="CASCADE"), nullable=False)
+    appointment_id = Column(Integer, ForeignKey("appointments.id", ondelete="SET NULL"), nullable=True)
+    report_title = Column(String, nullable=False)
+    report_type = Column(String, nullable=False)  # Blood Test, X-Ray, CT Scan, MRI, etc.
+    report_date = Column(Date, nullable=False)
+    description = Column(Text)
+    file_path = Column(String, nullable=False)
+    file_name = Column(String, nullable=False)
+    file_size = Column(Integer)  # in bytes
+    file_type = Column(String)  # pdf, jpg, png
+    upload_date = Column(Date, default=date.today)
+    reviewed_by_doctor = Column(Integer, ForeignKey("doctors.id", ondelete="SET NULL"), nullable=True)
+    review_date = Column(Date, nullable=True)
+    doctor_notes = Column(Text)
+    status = Column(String, default="pending")  # pending, reviewed
 
 
 # ==========================================
@@ -195,6 +231,29 @@ class AppointmentSchema(BaseModel):
 
 class AppointmentStatusUpdate(BaseModel):
     action: str  # "accept", "cancel", or "reject"
+
+
+class PrescriptionSchema(BaseModel):
+    appointment_id: int
+    patient_id: int
+    doctor_id: int
+    medicines: str  # JSON string
+    diagnosis: Optional[str] = None
+    reports_required: Optional[str] = None
+    additional_notes: Optional[str] = None
+
+
+class MedicalReportSchema(BaseModel):
+    patient_id: int
+    appointment_id: Optional[int] = None
+    report_title: str
+    report_type: str
+    report_date: date
+    description: Optional[str] = None
+
+
+class ReportReviewSchema(BaseModel):
+    doctor_notes: Optional[str] = None
 
 
 def get_patient_for_user(db: Session, user: User) -> Patient:
@@ -528,7 +587,217 @@ def seed_database(db: Session = Depends(get_db)):
     return {"message": "Seeded successfully", "created": created}
 
 
-# 16. Health Check
+# ==========================================
+# 16. Prescription Endpoints
+# ==========================================
+@app.post("/prescriptions", status_code=status.HTTP_201_CREATED)
+def create_prescription(data: PrescriptionSchema, current_user: User = Depends(require_doctor), db: Session = Depends(get_db)):
+    doctor = get_doctor_for_user(db, current_user)
+    appointment = get_or_404(db.query(Appointment).filter(Appointment.id == data.appointment_id), "Appointment not found")
+    if appointment.doctor_id != doctor.id:
+        raise HTTPException(status_code=403, detail="Not your appointment")
+    if appointment.status != "completed":
+        raise HTTPException(status_code=400, detail="Appointment must be completed first")
+    existing = db.query(Prescription).filter(Prescription.appointment_id == data.appointment_id).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Prescription already exists for this appointment")
+    prescription = Prescription(**data.model_dump())
+    db.add(prescription)
+    db.commit()
+    db.refresh(prescription)
+    return prescription
+
+
+@app.get("/prescriptions")
+def get_prescriptions(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if current_user.role == "patient":
+        patient = get_patient_for_user(db, current_user)
+        return db.query(Prescription).filter(Prescription.patient_id == patient.id).all()
+    if current_user.role == "doctor":
+        doctor = get_doctor_for_user(db, current_user)
+        return db.query(Prescription).filter(Prescription.doctor_id == doctor.id).all()
+    return db.query(Prescription).all()
+
+
+@app.get("/prescriptions/{prescription_id}")
+def get_prescription(prescription_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    prescription = get_or_404(db.query(Prescription).filter(Prescription.id == prescription_id), "Prescription not found")
+    if current_user.role == "patient":
+        patient = get_patient_for_user(db, current_user)
+        if prescription.patient_id != patient.id:
+            raise HTTPException(status_code=403, detail="Not allowed")
+    elif current_user.role == "doctor":
+        doctor = get_doctor_for_user(db, current_user)
+        if prescription.doctor_id != doctor.id:
+            raise HTTPException(status_code=403, detail="Not allowed")
+    return prescription
+
+
+@app.get("/appointments/{appointment_id}/prescription")
+def get_appointment_prescription(appointment_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    appointment = get_or_404(db.query(Appointment).filter(Appointment.id == appointment_id), "Appointment not found")
+    ensure_appointment_access(db, current_user, appointment)
+    prescription = db.query(Prescription).filter(Prescription.appointment_id == appointment_id).first()
+    if not prescription:
+        raise HTTPException(status_code=404, detail="No prescription found for this appointment")
+    return prescription
+
+
+# ==========================================
+# 17. Medical Reports Endpoints
+# ==========================================
+ALLOWED_EXTENSIONS = {'.pdf', '.jpg', '.jpeg', '.png'}
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
+
+
+@app.post("/medical-reports/upload", status_code=status.HTTP_201_CREATED)
+async def upload_medical_report(
+    patient_id: int = Form(...),
+    report_title: str = Form(...),
+    report_type: str = Form(...),
+    report_date: str = Form(...),
+    description: str = Form(None),
+    appointment_id: int = Form(None),
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    # Verify user can upload for this patient
+    if current_user.role == "patient":
+        patient = get_patient_for_user(db, current_user)
+        if patient.id != patient_id:
+            raise HTTPException(status_code=403, detail="Not allowed to upload for this patient")
+    elif current_user.role == "doctor":
+        raise HTTPException(status_code=403, detail="Doctors cannot upload patient reports")
+    
+    # Validate file
+    file_ext = os.path.splitext(file.filename)[1].lower()
+    if file_ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(status_code=400, detail=f"File type {file_ext} not allowed. Use PDF, JPG, JPEG, or PNG.")
+    
+    # Read file content
+    content = await file.read()
+    file_size = len(content)
+    
+    if file_size > MAX_FILE_SIZE:
+        raise HTTPException(status_code=400, detail="File size exceeds 10MB limit")
+    
+    # Generate unique filename
+    import uuid
+    unique_filename = f"{uuid.uuid4().hex}_{file.filename}"
+    file_path = os.path.join(UPLOAD_DIR, unique_filename)
+    
+    # Save file
+    with open(file_path, "wb") as f:
+        f.write(content)
+    
+    # Create database record
+    report = MedicalReport(
+        patient_id=patient_id,
+        appointment_id=appointment_id,
+        report_title=report_title,
+        report_type=report_type,
+        report_date=report_date,
+        description=description,
+        file_path=file_path,
+        file_name=file.filename,
+        file_size=file_size,
+        file_type=file_ext.lstrip('.')
+    )
+    db.add(report)
+    db.commit()
+    db.refresh(report)
+    return report
+
+
+@app.get("/medical-reports")
+def get_medical_reports(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if current_user.role == "patient":
+        patient = get_patient_for_user(db, current_user)
+        return db.query(MedicalReport).filter(MedicalReport.patient_id == patient.id).all()
+    elif current_user.role == "doctor":
+        doctor = get_doctor_for_user(db, current_user)
+        # Get all reports for patients the doctor has appointments with
+        patient_ids = db.query(Appointment.patient_id).filter(Appointment.doctor_id == doctor.id).distinct()
+        return db.query(MedicalReport).filter(MedicalReport.patient_id.in_(patient_ids)).all()
+    return db.query(MedicalReport).all()
+
+
+@app.get("/medical-reports/patient/{patient_id}")
+def get_patient_reports(patient_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    ensure_patient_access(db, current_user, patient_id)
+    return db.query(MedicalReport).filter(MedicalReport.patient_id == patient_id).all()
+
+
+@app.get("/medical-reports/{report_id}")
+def get_medical_report(report_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    report = get_or_404(db.query(MedicalReport).filter(MedicalReport.id == report_id), "Report not found")
+    ensure_patient_access(db, current_user, report.patient_id)
+    return report
+
+
+@app.get("/medical-reports/{report_id}/download")
+def download_medical_report(report_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    report = get_or_404(db.query(MedicalReport).filter(MedicalReport.id == report_id), "Report not found")
+    ensure_patient_access(db, current_user, report.patient_id)
+    
+    if not os.path.exists(report.file_path):
+        raise HTTPException(status_code=404, detail="File not found on server")
+    
+    return FileResponse(
+        path=report.file_path,
+        filename=report.file_name,
+        media_type="application/octet-stream"
+    )
+
+
+@app.delete("/medical-reports/{report_id}")
+def delete_medical_report(report_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    report = get_or_404(db.query(MedicalReport).filter(MedicalReport.id == report_id), "Report not found")
+    
+    # Only patient or admin can delete
+    if current_user.role == "patient":
+        patient = get_patient_for_user(db, current_user)
+        if report.patient_id != patient.id:
+            raise HTTPException(status_code=403, detail="Not allowed")
+    elif current_user.role == "doctor":
+        raise HTTPException(status_code=403, detail="Doctors cannot delete reports")
+    
+    # Delete file
+    if os.path.exists(report.file_path):
+        os.remove(report.file_path)
+    
+    db.delete(report)
+    db.commit()
+    return {"message": "Report deleted successfully"}
+
+
+@app.patch("/medical-reports/{report_id}/review")
+def review_medical_report(
+    report_id: int,
+    data: ReportReviewSchema,
+    current_user: User = Depends(require_doctor),
+    db: Session = Depends(get_db)
+):
+    report = get_or_404(db.query(MedicalReport).filter(MedicalReport.id == report_id), "Report not found")
+    doctor = get_doctor_for_user(db, current_user)
+    
+    # Check if doctor has access to this patient
+    if not doctor_can_access_patient(db, doctor.id, report.patient_id):
+        raise HTTPException(status_code=403, detail="No access to this patient's reports")
+    
+    report.reviewed_by_doctor = doctor.id
+    report.review_date = date.today()
+    report.status = "reviewed"
+    if data.doctor_notes:
+        report.doctor_notes = data.doctor_notes
+    
+    db.commit()
+    db.refresh(report)
+    return report
+
+
+# 18. Health Check
 # ==========================================
 @app.get("/health")
 def health_check(db: Session = Depends(get_db)):
